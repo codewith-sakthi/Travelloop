@@ -1,0 +1,546 @@
+{% extends "base.html" %}
+
+{% block extra_head %}
+<style>
+    .map-container {
+        display: grid;
+        grid-template-columns: 300px 1fr;
+        gap: 2rem;
+        margin-top: 2rem;
+        min-height: calc(100vh - 140px);
+    }
+
+    @media (max-width: 1024px) {
+        .map-container {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .map-sidebar {
+        background: var(--white);
+        border-radius: var(--radius-xl);
+        box-shadow: var(--shadow-soft);
+        padding: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        height: fit-content;
+        border: 1px solid rgba(0,0,0,0.03);
+    }
+
+    .map-main {
+        background: var(--white);
+        border-radius: var(--radius-xl);
+        box-shadow: var(--shadow-soft);
+        padding: 2rem;
+        border: 1px solid rgba(0,0,0,0.03);
+    }
+
+    #map {
+        height: 600px;
+        border-radius: var(--radius-lg);
+        border: 1px solid #E2E8F0;
+    }
+
+    @media (max-width: 768px) {
+        #map {
+            height: 400px;
+        }
+    }
+
+    .map-controls {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .control-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .control-group h4 {
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin: 0;
+    }
+
+    .control-buttons {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 0.5rem;
+    }
+
+    .map-btn {
+        padding: 0.75rem 1rem;
+        border-radius: var(--radius-md);
+        background: #F1F5F9;
+        border: 1px solid #E2E8F0;
+        cursor: pointer;
+        transition: var(--transition);
+        font-size: 0.9rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        text-align: center;
+    }
+
+    .map-btn:hover {
+        background: var(--primary);
+        color: white;
+        transform: translateY(-1px);
+    }
+
+    .map-btn.active {
+        background: var(--primary);
+        color: white;
+    }
+
+    .location-status {
+        padding: 0.75rem;
+        border-radius: var(--radius-md);
+        background: #F8FAFC;
+        border: 1px solid #E2E8F0;
+        font-size: 0.9rem;
+        color: var(--muted);
+    }
+
+    .location-status.active {
+        background: rgba(34, 197, 94, 0.1);
+        color: var(--success);
+        border-color: var(--success);
+    }
+
+    .nearby-list {
+        margin-top: 1rem;
+        max-height: 300px;
+        overflow-y: auto;
+    }
+
+    .nearby-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.5rem;
+        border-radius: var(--radius-md);
+        cursor: pointer;
+        transition: var(--transition);
+        margin-bottom: 0.25rem;
+    }
+
+    .nearby-item:hover {
+        background: #F8FAFC;
+    }
+
+    .nearby-item.active {
+        background: rgba(37, 99, 235, 0.1);
+        border-left: 3px solid var(--primary);
+    }
+
+    .nearby-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 0.8rem;
+        font-weight: 700;
+    }
+
+    .icon-restaurant { background: #10B981; }
+    .icon-hotel { background: #8B5CF6; }
+    .icon-hospital { background: #EF4444; }
+    .icon-tourism { background: #F59E0B; }
+    .icon-transport { background: #6B7280; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="map-container animate-fade-in-up">
+    <!-- Sidebar Controls -->
+    <div class="map-sidebar">
+        <h3 style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
+            <i data-lucide="map" style="color: var(--primary);"></i>
+            Map Controls
+        </h3>
+
+        <!-- Location Controls -->
+        <div class="control-group">
+            <h4>Your Location</h4>
+            <div id="locationStatus" class="location-status">
+                <i data-lucide="map-pin" style="width:16px;height:16px;"></i>
+                Click "Find Me" to locate
+            </div>
+            <button class="map-btn" onclick="locateUser()" id="locateBtn">
+                <i data-lucide="crosshair"></i> Find Me
+            </button>
+        </div>
+
+        <!-- Nearby Resources -->
+        <div class="control-group">
+            <h4>Nearby Resources</h4>
+            <div class="control-buttons">
+                <button class="map-btn" onclick="findNearby('restaurant')" data-type="restaurant">
+                    <i data-lucide="utensils"></i> Food
+                </button>
+                <button class="map-btn" onclick="findNearby('hotel')" data-type="hotel">
+                    <i data-lucide="bed"></i> Hotels
+                </button>
+                <button class="map-btn" onclick="findNearby('hospital')" data-type="hospital">
+                    <i data-lucide="heart"></i> Health
+                </button>
+                <button class="map-btn" onclick="findNearby('tourism')" data-type="tourism">
+                    <i data-lucide="camera"></i> Sights
+                </button>
+                <button class="map-btn" onclick="findNearby('transport')" data-type="transport">
+                    <i data-lucide="train"></i> Transport
+                </button>
+            </div>
+        </div>
+
+        <!-- Trip Destinations -->
+        <div class="control-group">
+            <h4>Trip Destinations</h4>
+            <button class="map-btn" onclick="showTripDestinations()">
+                <i data-lucide="map-pin"></i> Show All
+            </button>
+            <button class="map-btn" onclick="clearMarkers()">
+                <i data-lucide="trash-2"></i> Clear Map
+            </button>
+        </div>
+
+        <!-- Nearby Places List -->
+        <div id="nearbyList" class="nearby-list" style="display: none;">
+            <h4 style="font-size: 0.9rem; margin-bottom: 0.5rem;">Found Places:</h4>
+            <div id="nearbyItems"></div>
+        </div>
+    </div>
+
+    <!-- Main Map -->
+    <div class="map-main">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <h2 style="font-size: 1.75rem; margin: 0;">Interactive Trip Map</h2>
+            <div style="font-size: 0.9rem; color: var(--muted);">
+                <i data-lucide="info" style="width:16px;height:16px;"></i>
+                Zoom and explore your destinations
+            </div>
+        </div>
+
+        <div id="map"></div>
+
+        <div style="margin-top: 1rem; padding: 1rem; background: #F8FAFC; border-radius: var(--radius-md); border: 1px solid #E2E8F0;">
+            <p style="margin: 0; font-size: 0.9rem; color: var(--muted); line-height: 1.5;">
+                <strong>Tips:</strong> Use "Find Me" to locate yourself, then search for nearby resources.
+                Trip destinations are automatically marked. Click markers for details.
+            </p>
+        </div>
+    </div>
+</div>
+
+<script>
+// Map functionality using Leaflet.js and OpenStreetMap
+let map;
+let userMarker;
+let markers = [];
+let nearbyMarkers = [];
+let tripMarkers = [];
+let currentLocation = null;
+let currentNearbyType = null;
+
+// Initialize map
+function initMap() {
+    const defaultLat = 20.5937; // India center
+    const defaultLng = 78.9629;
+
+    map = L.map('map').setView([defaultLat, defaultLng], 5);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    // Load trip destinations if available
+    loadTripDestinations();
+}
+
+// Load trip destinations from user's trips
+async function loadTripDestinations() {
+    try {
+        // This would ideally come from the backend, but for now we'll use a placeholder
+        // In a real implementation, you'd fetch user's trip data
+        const trips = {{ trips|tojson }};
+
+        for (const trip of trips) {
+            // Geocode trip destinations
+            const places = extractPlacesFromTrip(trip);
+            for (const place of places) {
+                await addTripMarker(place, trip.name);
+            }
+        }
+    } catch (error) {
+        console.error('Error loading trip destinations:', error);
+    }
+}
+
+function extractPlacesFromTrip(trip) {
+    // Extract unique places from trip itinerary
+    const places = new Set();
+    if (trip.itinerary_items) {
+        trip.itinerary_items.forEach(item => {
+            places.add(item.name);
+        });
+    }
+    return Array.from(places);
+}
+
+async function addTripMarker(placeName, tripName) {
+    try {
+        const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(placeName)}&limit=1`);
+        const data = await response.json();
+
+        if (data.length > 0) {
+            const lat = parseFloat(data[0].lat);
+            const lng = parseFloat(data[0].lon);
+
+            const marker = L.marker([lat, lng]).addTo(map)
+                .bindPopup(`<b>${placeName}</b><br><small>${tripName}</small><br><em>Trip Destination</em>`);
+
+            tripMarkers.push(marker);
+            markers.push(marker);
+        }
+    } catch (error) {
+        console.error('Error geocoding trip destination:', error);
+    }
+}
+
+function showTripDestinations() {
+    if (tripMarkers.length === 0) {
+        alert('No trip destinations found. Plan some trips first!');
+        return;
+    }
+
+    // Fit map to show all trip markers
+    const group = new L.featureGroup(tripMarkers);
+    map.fitBounds(group.getBounds().pad(0.1));
+}
+
+// User location functionality
+async function locateUser() {
+    const btn = document.getElementById('locateBtn');
+    const status = document.getElementById('locationStatus');
+
+    btn.innerHTML = '<i data-lucide="loader" class="spin"></i> Locating...';
+    btn.disabled = true;
+    status.innerHTML = '<i data-lucide="loader" class="spin"></i> Finding your location...';
+    status.className = 'location-status';
+
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            position => {
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+                currentLocation = { lat, lng };
+
+                if (userMarker) map.removeLayer(userMarker);
+                userMarker = L.marker([lat, lng]).addTo(map)
+                    .bindPopup('<b>You are here</b><br><small>Current Location</small>').openPopup();
+
+                map.setView([lat, lng], 13);
+
+                status.innerHTML = '<i data-lucide="check-circle"></i> Location found!';
+                status.classList.add('active');
+                btn.innerHTML = '<i data-lucide="crosshair"></i> Find Me';
+                btn.disabled = false;
+
+                markers.push(userMarker);
+            },
+            error => {
+                let errorMsg = 'Unable to retrieve your location';
+                switch(error.code) {
+                    case error.PERMISSION_DENIED:
+                        errorMsg = 'Location access denied. Please enable location permissions.';
+                        break;
+                    case error.POSITION_UNAVAILABLE:
+                        errorMsg = 'Location information unavailable.';
+                        break;
+                    case error.TIMEOUT:
+                        errorMsg = 'Location request timed out.';
+                        break;
+                }
+
+                status.innerHTML = `<i data-lucide="x-circle"></i> ${errorMsg}`;
+                btn.innerHTML = '<i data-lucide="crosshair"></i> Find Me';
+                btn.disabled = false;
+            },
+            {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 300000
+            }
+        );
+    } else {
+        status.innerHTML = '<i data-lucide="x-circle"></i> Geolocation not supported';
+        btn.innerHTML = '<i data-lucide="crosshair"></i> Find Me';
+        btn.disabled = false;
+    }
+}
+
+// Find nearby places
+async function findNearby(type) {
+    if (!currentLocation) {
+        alert('Please find your location first using "Find Me"');
+        return;
+    }
+
+    const { lat, lng } = currentLocation;
+
+    // Update button states
+    document.querySelectorAll('.map-btn[data-type]').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    document.querySelector(`.map-btn[data-type="${type}"]`).classList.add('active');
+
+    currentNearbyType = type;
+
+    // Show loading in nearby list
+    const nearbyList = document.getElementById('nearbyList');
+    const nearbyItems = document.getElementById('nearbyItems');
+    nearbyList.style.display = 'block';
+    nearbyItems.innerHTML = '<div style="text-align:center;padding:1rem;color:var(--muted);"><i data-lucide="loader" class="spin"></i> Searching...</div>';
+
+    // Clear previous nearby markers
+    nearbyMarkers.forEach(marker => map.removeLayer(marker));
+    nearbyMarkers = [];
+
+    // Overpass API queries for different types
+    const queries = {
+        restaurant: '[out:json];node["amenity"="restaurant"](around:5000,{{lat}},{{lng}});out;',
+        hotel: '[out:json];node["tourism"="hotel"](around:5000,{{lat}},{{lng}});out;',
+        hospital: '[out:json];node["amenity"="hospital"](around:5000,{{lat}},{{lng}});out;',
+        tourism: '[out:json];node["tourism"](around:5000,{{lat}},{{lng}});out;',
+        transport: '[out:json];(node["public_transport"](around:5000,{{lat}},{{lng}});node["railway"="station"](around:5000,{{lat}},{{lng}});node["amenity"="bus_station"](around:5000,{{lat}},{{lng}}););out;'
+    };
+
+    const query = queries[type].replace(/\{\{lat\}\}/g, lat).replace(/\{\{lng\}\}/g, lng);
+
+    try {
+        const response = await fetch('https://overpass-api.de/api/interpreter', {
+            method: 'POST',
+            body: query
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        if (data.elements && data.elements.length > 0) {
+            // Create markers and list items
+            const items = data.elements
+                .filter(element => element.lat && element.lon)
+                .slice(0, 20) // Limit to 20 results
+                .map((element, index) => {
+                    const name = element.tags?.name || `${type.charAt(0).toUpperCase() + type.slice(1)} ${index + 1}`;
+                    const lat = element.lat;
+                    const lng = element.lon;
+
+                    // Create marker
+                    const marker = L.marker([lat, lng]).addTo(map)
+                        .bindPopup(`<b>${name}</b><br><small>${type}</small>`);
+
+                    nearbyMarkers.push(marker);
+                    markers.push(marker);
+
+                    return { name, lat, lng, element };
+                });
+
+            // Update list
+            nearbyItems.innerHTML = items.map((item, index) => `
+                <div class="nearby-item" onclick="focusMarker(${index})">
+                    <div class="nearby-icon icon-${type}">
+                        <i data-lucide="${getIconForType(type)}" style="width:16px;height:16px;"></i>
+                    </div>
+                    <div style="flex:1;">
+                        <div style="font-weight:600;font-size:0.9rem;">${item.name}</div>
+                        <div style="font-size:0.8rem;color:var(--muted);">${type}</div>
+                    </div>
+                    <i data-lucide="chevron-right" style="width:16px;height:16px;color:var(--muted);"></i>
+                </div>
+            `).join('');
+
+            // Fit map to show nearby places
+            if (nearbyMarkers.length > 0) {
+                const group = new L.featureGroup(nearbyMarkers);
+                map.fitBounds(group.getBounds().pad(0.1));
+            }
+
+            lucide.createIcons();
+        } else {
+            nearbyItems.innerHTML = '<div style="text-align:center;padding:1rem;color:var(--muted);">No places found nearby</div>';
+        }
+
+    } catch (error) {
+        console.error('Error fetching nearby places:', error);
+        nearbyItems.innerHTML = '<div style="text-align:center;padding:1rem;color:var(--danger);">Error loading places. Try again.</div>';
+    }
+}
+
+function getIconForType(type) {
+    const icons = {
+        restaurant: 'utensils',
+        hotel: 'bed',
+        hospital: 'heart',
+        tourism: 'camera',
+        transport: 'train'
+    };
+    return icons[type] || 'map-pin';
+}
+
+function focusMarker(index) {
+    if (nearbyMarkers[index]) {
+        const marker = nearbyMarkers[index];
+        map.setView(marker.getLatLng(), 15);
+        marker.openPopup();
+    }
+}
+
+function clearMarkers() {
+    // Clear all markers except user location
+    markers.forEach(marker => {
+        if (marker !== userMarker) {
+            map.removeLayer(marker);
+        }
+    });
+
+    markers = userMarker ? [userMarker] : [];
+    nearbyMarkers = [];
+    tripMarkers = [];
+
+    // Reset UI
+    document.querySelectorAll('.map-btn[data-type]').forEach(btn => {
+        btn.classList.remove('active');
+    });
+
+    document.getElementById('nearbyList').style.display = 'none';
+    document.getElementById('locationStatus').className = 'location-status';
+    document.getElementById('locationStatus').innerHTML = '<i data-lucide="map-pin"></i> Click "Find Me" to locate';
+
+    // Reset map view
+    map.setView([20.5937, 78.9629], 5);
+}
+
+// Initialize map when page loads
+document.addEventListener('DOMContentLoaded', () => {
+    initMap();
+    lucide.createIcons();
+});
+</script>
+{% endblock %}

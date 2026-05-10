@@ -38,17 +38,6 @@
         min-height: calc(100vh - 140px);
     }
 
-    .main-canvas {
-        background: var(--white);
-        border-radius: var(--radius-xl);
-        box-shadow: var(--shadow-soft);
-        padding: 2rem;
-        overflow-y: auto;
-        min-height: 500px;
-        border: 1px solid rgba(0,0,0,0.03);
-        position: relative;
-    }
-    
     .search-box {
         margin-bottom: 1.5rem;
     }
@@ -470,7 +459,7 @@
                             </div>
                         </div>
                         <div class="act-actions">
-                            <button class="act-btn danger" onclick="this.closest('.activity-card').remove(); updateBudget();"><i data-lucide="trash-2" style="width: 16px; height: 16px; color: var(--danger);"></i></button>
+                            <button class="act-btn danger" onclick="this.closest('.activity-card').remove(); updateBudget(); addTripMarkers();"><i data-lucide="trash-2" style="width: 16px; height: 16px; color: var(--danger);"></i></button>
                         </div>
                     </div>
                     {% endfor %}
@@ -632,6 +621,7 @@
         container.insertAdjacentHTML('beforeend', html);
         updateBudget();
         lucide.createIcons();
+        addTripMarkers(); // Update map markers
     }
     
     function updateBudget() {
@@ -766,5 +756,11 @@
 
     // Initialize budget on load
     updateBudget();
+</script>
+
+<script>
+<script>
+// Initialize map when page loads
+document.addEventListener('DOMContentLoaded', initMap);
 </script>
 {% endblock %}

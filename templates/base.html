@@ -58,6 +58,8 @@
         .pm-divider { height: 1px; background: #E2E8F0; margin: 0.3rem 0; }
         .pm-item.danger { color: var(--danger); }
     </style>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     {% block extra_head %}{% endblock %}
 </head>
 <body>
@@ -111,6 +113,9 @@
                         </a>
                         <a href="{{ url_for('my_trips') }}" class="pm-item">
                             <i data-lucide="map" style="width:16px;height:16px;"></i> My Trips
+                        </a>
+                        <a href="{{ url_for('trip_map') }}" class="pm-item">
+                            <i data-lucide="globe" style="width:16px;height:16px;"></i> Trip Map
                         </a>
                         <a href="{{ url_for('create_trip') }}" class="pm-item">
                             <i data-lucide="plus-circle" style="width:16px;height:16px;"></i> New Trip

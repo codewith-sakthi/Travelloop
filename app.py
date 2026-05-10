@@ -304,6 +304,35 @@ def profile_settings():
 
     return render_template('profile_settings.html')
 
+@app.route('/map')
+@login_required
+def trip_map():
+    # Serialize trip data for JavaScript
+    trips_data = []
+    if current_user.is_authenticated:
+        for trip in current_user.trips:
+            trip_dict = {
+                'id': trip.id,
+                'name': trip.name,
+                'start_date': trip.start_date.isoformat() if trip.start_date else None,
+                'end_date': trip.end_date.isoformat() if trip.end_date else None,
+                'description': trip.description,
+                'itinerary_items': [
+                    {
+                        'id': item.id,
+                        'name': item.name,
+                        'category': item.category,
+                        'day': item.day,
+                        'time': item.time,
+                        'description': item.description,
+                        'cost': item.cost
+                    } for item in trip.itinerary_items
+                ]
+            }
+            trips_data.append(trip_dict)
+
+    return render_template('trip_map.html', trips=trips_data)
+
 @app.route('/trips/create', methods=['GET', 'POST'])
 @login_required
 def create_trip():
