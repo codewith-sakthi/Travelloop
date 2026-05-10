@@ -1,0 +1,188 @@
+{% extends "base.html" %}
+
+{% block extra_head %}
+<style>
+    .post-hero {
+        position: relative;
+        height: 400px;
+        border-radius: var(--radius-2xl);
+        overflow: hidden;
+        margin-bottom: 3rem;
+    }
+
+    .hero-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .hero-overlay {
+        position: absolute;
+        bottom: 0; left: 0; right: 0;
+        padding: 3rem 2rem;
+        background: linear-gradient(transparent, rgba(0,0,0,0.8));
+        color: white;
+    }
+
+    .detail-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 3rem;
+    }
+
+    .author-strip {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .itinerary-preview {
+        background: #F8FAFC;
+        border-radius: var(--radius-xl);
+        padding: 2rem;
+        margin-top: 2rem;
+    }
+
+    .day-block {
+        margin-bottom: 2rem;
+        padding-left: 1.5rem;
+        border-left: 2px solid var(--primary);
+    }
+
+    .comment-card {
+        padding: 1rem 0;
+        border-bottom: 1px solid #F1F5F9;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="post-hero">
+    <img src="{{ post.trip.cover_photo or 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1200' }}" class="hero-img">
+    <div class="hero-overlay">
+        <h1 style="font-size: 3rem; margin-bottom: 1rem;">{{ post.title }}</h1>
+        <div style="display: flex; gap: 2rem; font-weight: 600;">
+            <span><i data-lucide="map-pin" style="width: 18px;"></i> {{ post.trip.name }}</span>
+            <span><i data-lucide="calendar" style="width: 18px;"></i> {{ post.trip.start_date.strftime('%b %Y') }}</span>
+        </div>
+    </div>
+</div>
+
+<div class="detail-grid">
+    <div class="main-content">
+        <div class="author-strip">
+            <div style="width: 48px; height: 48px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.2rem;">
+                {{ post.user.name[0].upper() }}
+            </div>
+            <div>
+                <div style="font-weight: 700; font-size: 1.1rem;">{{ post.user.name }}</div>
+                <div style="color: var(--muted); font-size: 0.9rem;">Shared on {{ post.created_at.strftime('%B %d, %Y') }}</div>
+            </div>
+            <div style="margin-left: auto;">
+                <button class="btn btn-primary" onclick="copyTrip({{ post.trip_id }}, this)">
+                    <i data-lucide="copy"></i> Save as My Trip
+                </button>
+            </div>
+        </div>
+
+        <div style="font-size: 1.1rem; line-height: 1.8; color: var(--dark); margin-bottom: 3rem;">
+            {{ post.description }}
+        </div>
+
+        <h3>Trip Itinerary</h3>
+        <div class="itinerary-preview">
+            {% set items_by_day = {} %}
+            {% for item in post.trip.itinerary_items %}
+                {% if item.day not in items_by_day %}
+                    {% set _ = items_by_day.update({item.day: []}) %}
+                {% endif %}
+                {% set _ = items_by_day[item.day].append(item) %}
+            {% endfor %}
+
+            {% for day, items in items_by_day.items()|sort %}
+            <div class="day-block">
+                <h4 style="margin-bottom: 1rem; color: var(--primary);">Day {{ day }}</h4>
+                {% for item in items|sort(attribute='time') %}
+                <div style="display: flex; gap: 1rem; margin-bottom: 0.75rem;">
+                    <div style="font-weight: 700; font-size: 0.9rem; color: var(--muted); width: 80px;">{{ item.time }}</div>
+                    <div style="font-weight: 600;">{{ item.name }}</div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="sidebar">
+        <div class="card" style="position: sticky; top: 100px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                <h3 style="margin: 0;">Interaction</h3>
+                <div class="stat-item {% if is_liked %}liked{% endif %}" style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; color: {% if is_liked %}var(--danger){% else %}var(--muted){% endif %};" onclick="toggleLike({{ post.id }}, this)">
+                    <i data-lucide="heart" style="fill: {% if is_liked %}currentColor{% else %}none{% endif %};"></i>
+                    <span class="like-count" style="font-weight: 700;">{{ post.likes|length }}</span>
+                </div>
+            </div>
+
+            <h4>Comments</h4>
+            <div style="max-height: 400px; overflow-y: auto; margin: 1.5rem 0;">
+                {% for comment in post.comments %}
+                <div class="comment-card">
+                    <div style="font-weight: 700; font-size: 0.85rem; margin-bottom: 0.25rem;">{{ comment.user.name }}</div>
+                    <div style="font-size: 0.92rem; color: var(--muted);">{{ comment.body }}</div>
+                </div>
+                {% else %}
+                <p style="color: var(--muted); font-style: italic; font-size: 0.9rem;">No comments yet. Be the first!</p>
+                {% endfor %}
+            </div>
+
+            <form action="{{ url_for('add_comment', post_id=post.id) }}" method="POST">
+                <textarea name="body" class="form-control" style="width: 100%; height: 80px; margin-bottom: 1rem;" placeholder="Write a comment..." required></textarea>
+                <button type="submit" class="btn btn-outline" style="width: 100%;">Post Comment</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    async function toggleLike(postId, el) {
+        const res = await fetch(`/community/post/${postId}/like`, { method: 'POST' });
+        const data = await res.json();
+        if (data.status === 'success') {
+            const icon = el.querySelector('i');
+            if (data.liked) {
+                el.style.color = 'var(--danger)';
+                icon.style.fill = 'currentColor';
+            } else {
+                el.style.color = 'var(--muted)';
+                icon.style.fill = 'none';
+            }
+            el.querySelector('.like-count').innerText = data.count;
+        }
+    }
+
+    async function copyTrip(tripId, btn) {
+        const originalHtml = btn.innerHTML;
+        btn.innerHTML = '<i data-lucide="loader" class="spin"></i> Saving...';
+        btn.disabled = true;
+        lucide.createIcons();
+        
+        try {
+            const res = await fetch(`/api/trips/${tripId}/copy`, { method: 'POST' });
+            const data = await res.json();
+            if (data.status === 'success') {
+                btn.innerHTML = '<i data-lucide="check"></i> Saved!';
+                btn.style.background = 'var(--success)';
+                btn.style.borderColor = 'var(--success)';
+                setTimeout(() => {
+                    window.location.href = `/trips/${data.new_trip_id}/build`;
+                }, 1000);
+            }
+        } catch (e) {
+            btn.innerHTML = originalHtml;
+            btn.disabled = false;
+            alert('Failed to copy trip');
+        }
+    }
+</script>
+{% endblock %}

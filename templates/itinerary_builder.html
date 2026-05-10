@@ -331,6 +331,29 @@
         <div id="searchResults" style="flex: 1; overflow-y: auto;">
             <div id="resultsLoading" style="text-align:center;padding:2rem;color:var(--muted);font-size:0.9rem;">🔍 Type to search or loading top places…</div>
         </div>
+
+        <!-- Custom Activity Section -->
+        <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #F1F5F9;">
+            <h4 style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                <i data-lucide="edit-3" style="width: 18px; height: 18px; color: var(--primary);"></i>
+                Custom Activity
+            </h4>
+            <div class="form-group" style="margin-bottom: 0.75rem;">
+                <input type="text" id="customName" class="form-control" placeholder="Activity Name" style="font-size: 0.9rem;">
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.75rem;">
+                <input type="time" id="customTime" class="form-control" value="10:00" style="font-size: 0.85rem;">
+                <input type="number" id="customCost" class="form-control" placeholder="Cost" style="font-size: 0.85rem;">
+            </div>
+            <select id="customCat" class="form-control" style="margin-bottom: 1rem; font-size: 0.85rem;">
+                <option value="activity">Activity</option>
+                <option value="food">Food & Dining</option>
+                <option value="hotel">Accommodation</option>
+            </select>
+            <button class="btn btn-outline" style="width: 100%; border-style: dashed; padding: 0.6rem;" onclick="addManualActivity()">
+                <i data-lucide="plus"></i> Add Manually
+            </button>
+        </div>
     </div>
     
     <!-- Main Canvas -->
@@ -492,7 +515,24 @@
         el.style.color = '#8B5CF6';
     }
     
-    function addToTimeline(name, category, cost = 0) {
+    function addManualActivity() {
+        const name = document.getElementById('customName').value.trim();
+        const timeInput = document.getElementById('customTime').value;
+        const cost = parseFloat(document.getElementById('customCost').value) || 0;
+        const cat  = document.getElementById('customCat').value;
+        
+        if (!name) { alert('Please enter a name'); return; }
+        
+        let [h, m] = timeInput.split(':');
+        let ampm = h >= 12 ? 'PM' : 'AM';
+        h = h % 12 || 12;
+        const displayTime = `${h}:${m} ${ampm}`;
+        
+        addToTimeline(name, cat, cost, displayTime, 'Manual Entry');
+        document.getElementById('customName').value = '';
+    }
+
+    function addToTimeline(name, category, cost = 0, time = '12:00 PM', source = 'Search') {
         const targetDay = document.getElementById('targetDay').value;
         const container = document.getElementById(`day${targetDay}-items`);
         
@@ -506,12 +546,12 @@
         
         const html = `
             <div class="activity-card animate-fade-in-up" style="animation-duration: 0.3s;" data-cost="${cost}" data-category="${category}">
-                <div class="act-time">12:00 PM</div>
+                <div class="act-time">${time}</div>
                 <div class="act-icon ${iconClass}"><i data-lucide="${iconName}" style="width: 20px; height: 20px;"></i></div>
                 <div class="act-content">
                     <h4>${name}</h4>
                     <div class="act-meta">
-                        <span><i data-lucide="map-pin" style="width: 14px; height: 14px;"></i> Added from Search</span>
+                        <span><i data-lucide="${source === 'Manual Entry' ? 'edit-3' : 'map-pin'}" style="width: 14px; height: 14px;"></i> ${source}</span>
                         <span><i data-lucide="wallet" style="width: 14px; height: 14px;"></i> INR ${cost}</span>
                     </div>
                 </div>

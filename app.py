@@ -119,6 +119,33 @@ class PackingItem(db.Model):
         self.category = category
         self.is_packed = is_packed
 
+class CommunityPost(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    trip_id = db.Column(db.Integer, db.ForeignKey('trip.id'), nullable=False)
+    title = db.Column(db.String(150), nullable=False)
+    description = db.Column(db.Text, default='')
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    # Relationships
+    user = db.relationship('User', backref='posts', lazy=True)
+    trip = db.relationship('Trip', backref='community_posts', lazy=True)
+    likes = db.relationship('PostLike', backref='post', lazy=True, cascade='all, delete-orphan')
+    comments = db.relationship('PostComment', backref='post', lazy=True, cascade='all, delete-orphan', order_by='PostComment.created_at')
+
+class PostLike(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    post_id = db.Column(db.Integer, db.ForeignKey('community_post.id'), nullable=False)
+    __table_args__ = (db.UniqueConstraint('user_id', 'post_id', name='_user_post_like_uc'),)
+
+class PostComment(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    post_id = db.Column(db.Integer, db.ForeignKey('community_post.id'), nullable=False)
+    body = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    user = db.relationship('User', backref='comments', lazy=True)
+
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
@@ -294,6 +321,117 @@ def save_itinerary(trip_id):
 def ai_planner():
     return render_template('ai_planner.html')
 
+@app.route('/community')
+@login_required
+def community_feed():
+    posts = CommunityPost.query.order_by(CommunityPost.created_at.desc()).all()
+    # Check if user has liked each post
+    liked_post_ids = [like.post_id for like in PostLike.query.filter_by(user_id=current_user.id).all()]
+    return render_template('community_feed.html', posts=posts, liked_post_ids=liked_post_ids)
+
+@app.route('/community/share', methods=['POST'])
+@login_required
+def share_trip():
+    trip_id = request.form.get('trip_id')
+    title = request.form.get('title')
+    description = request.form.get('description', '')
+    
+    trip = Trip.query.get_or_404(trip_id)
+    if trip.user_id != current_user.id:
+        return jsonify({"error": "Unauthorized"}), 403
+    
+    post = CommunityPost(
+        user_id=current_user.id,
+        trip_id=trip_id,
+        title=title,
+        description=description
+    )
+    db.session.add(post)
+    db.session.commit()
+    flash('Trip shared with the community!')
+    return redirect(url_for('community_feed'))
+
+@app.route('/community/post/<int:post_id>/like', methods=['POST'])
+@login_required
+def like_post(post_id):
+    like = PostLike.query.filter_by(user_id=current_user.id, post_id=post_id).first()
+    if like:
+        db.session.delete(like)
+        liked = False
+    else:
+        new_like = PostLike(user_id=current_user.id, post_id=post_id)
+        db.session.add(new_like)
+        liked = True
+    db.session.commit()
+    return jsonify({"status": "success", "liked": liked, "count": PostLike.query.filter_by(post_id=post_id).count()})
+
+@app.route('/community/post/<int:post_id>/comment', methods=['POST'])
+@login_required
+def add_comment(post_id):
+    body = request.form.get('body')
+    if not body:
+        return redirect(url_for('view_post', post_id=post_id))
+    
+    comment = PostComment(
+        user_id=current_user.id,
+        post_id=post_id,
+        body=body
+    )
+    db.session.add(comment)
+    db.session.commit()
+    return redirect(url_for('view_post', post_id=post_id))
+
+@app.route('/community/post/<int:post_id>')
+@login_required
+def view_post(post_id):
+    post = CommunityPost.query.get_or_404(post_id)
+    is_liked = PostLike.query.filter_by(user_id=current_user.id, post_id=post_id).first() is not None
+    return render_template('post_detail.html', post=post, is_liked=is_liked)
+
+@app.route('/api/trips/<int:trip_id>/copy', methods=['POST'])
+@login_required
+def copy_trip(trip_id):
+    original = Trip.query.get_or_404(trip_id)
+    
+    # Create new trip
+    new_trip = Trip(
+        user_id=current_user.id,
+        name=f"Copy of {original.name}",
+        start_date=original.start_date,
+        end_date=original.end_date,
+        description=original.description,
+        num_travelers=original.num_travelers,
+        cover_photo=original.cover_photo
+    )
+    db.session.add(new_trip)
+    db.session.flush() # Get new_trip.id
+    
+    # Copy itinerary items
+    for item in original.itinerary_items:
+        new_item = ItineraryItem(
+            trip_id=new_trip.id,
+            day=item.day,
+            name=item.name,
+            category=item.category,
+            time=item.time,
+            description=item.description,
+            cost=item.cost
+        )
+        db.session.add(new_item)
+        
+    # Copy packing items
+    for p_item in original.packing_items:
+        new_p = PackingItem(
+            trip_id=new_trip.id,
+            item=p_item.item,
+            category=p_item.category,
+            is_packed=False
+        )
+        db.session.add(new_p)
+        
+    db.session.commit()
+    return jsonify({"status": "success", "new_trip_id": new_trip.id})
+
 @app.route('/trips/<int:trip_id>/packing')
 @login_required
 def packing_list(trip_id):
@@ -383,8 +521,13 @@ def search_places():
         places_query = places_query.filter_by(category=category)
 
     if query:
-        # Clean query: remove common prefixes like "trip to" or "visit to"
-        clean_query = query.replace('trip to ', '').replace('visit to ', '').replace('my trip to ', '').strip()
+        # Aggressively clean query: remove common travel-related words
+        clean_query = query.lower()
+        # Remove common phrases
+        for s in ['trip to ', 'visit to ', 'my trip to ', 'tour of ', 'exploring ', ' trip', ' tour', ' vacation', ' visit']:
+            clean_query = clean_query.replace(s, '')
+            
+        clean_query = clean_query.strip()
         
         places_query = places_query.filter(
             or_(

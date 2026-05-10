@@ -82,6 +82,7 @@
         <div class="nav-links">
             {% if current_user.is_authenticated %}
                 <a href="{{ url_for('dashboard') }}" class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}">Dashboard</a>
+                <a href="{{ url_for('community_feed') }}" class="nav-link {% if request.endpoint == 'community_feed' %}active{% endif %}">Community</a>
                 <a href="{{ url_for('ai_planner') }}" class="nav-link {% if request.endpoint == 'ai_planner' %}active{% endif %}">AI Planner</a>
                 <a href="{{ url_for('my_trips') }}"  class="nav-link {% if request.endpoint == 'my_trips' %}active{% endif %}">My Trips</a>
                 <a href="{{ url_for('create_trip') }}" class="btn btn-primary">
