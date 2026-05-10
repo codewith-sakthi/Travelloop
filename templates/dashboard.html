@@ -1,0 +1,274 @@
+{% extends "base.html" %}
+
+{% block extra_head %}
+<style>
+    /* Banner Area */
+    .dashboard-banner {
+        position: relative;
+        height: 300px;
+        border-radius: var(--radius-xl);
+        overflow: hidden;
+        margin-bottom: 3rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        color: var(--white);
+    }
+    .banner-bg {
+        position: absolute;
+        inset: 0;
+        background-image: url('https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=1200&auto=format&fit=crop');
+        background-size: cover;
+        background-position: center;
+        z-index: 1;
+    }
+    .banner-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.4);
+        z-index: 2;
+    }
+    .banner-content {
+        position: relative;
+        z-index: 3;
+        width: 100%;
+        max-width: 600px;
+        padding: 0 2rem;
+    }
+    .banner-content h1 {
+        color: var(--white);
+        font-size: 2.5rem;
+        margin-bottom: 1.5rem;
+        font-weight: 800;
+    }
+    
+    /* Search Bar in Banner */
+    .banner-search {
+        display: flex;
+        background: var(--white);
+        border-radius: var(--radius-xl);
+        overflow: hidden;
+        box-shadow: var(--shadow-lg);
+        padding: 0.3rem;
+    }
+    .banner-search input {
+        flex: 1;
+        border: none;
+        padding: 1rem 1.5rem;
+        font-size: 1rem;
+        outline: none;
+        border-radius: var(--radius-xl) 0 0 var(--radius-xl);
+        color: var(--darker);
+    }
+    .banner-search button {
+        background: var(--primary);
+        color: var(--white);
+        border: none;
+        padding: 0 2rem;
+        border-radius: var(--radius-xl);
+        font-weight: 600;
+        cursor: pointer;
+        transition: var(--transition-norm);
+    }
+    .banner-search button:hover {
+        background: var(--primary-hover);
+    }
+
+    /* Section Titles */
+    .section-title {
+        font-size: 1.5rem;
+        margin-bottom: 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: var(--darker);
+    }
+
+    /* Recommended Destinations (Horizontal scroll) */
+    .recommended-scroll {
+        display: flex;
+        gap: 1.5rem;
+        overflow-x: auto;
+        padding-bottom: 1rem;
+        scrollbar-width: none; /* Firefox */
+    }
+    .recommended-scroll::-webkit-scrollbar {
+        display: none; /* Safari and Chrome */
+    }
+    .rec-card {
+        min-width: 200px;
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        position: relative;
+        height: 250px;
+        box-shadow: var(--shadow-sm);
+        cursor: pointer;
+        transition: var(--transition-norm);
+        flex-shrink: 0;
+    }
+    .rec-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-lg);
+    }
+    .rec-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    .rec-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 60%);
+    }
+    .rec-title {
+        position: absolute;
+        bottom: 1.5rem;
+        left: 1.5rem;
+        color: var(--white);
+        margin: 0;
+        font-size: 1.25rem;
+        font-weight: 600;
+    }
+
+    /* Upcoming Trips */
+    .upcoming-trips {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 2rem;
+        margin-bottom: 3rem;
+    }
+    .trip-card {
+        display: flex;
+        background: var(--white);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        box-shadow: var(--shadow-md);
+        transition: var(--transition-norm);
+        border: 1px solid var(--light);
+        height: 140px;
+    }
+    .trip-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-lg);
+        border-color: var(--primary);
+    }
+    .trip-img {
+        width: 140px;
+        background-color: var(--light);
+        background-image: url('https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=400&auto=format&fit=crop');
+        background-size: cover;
+        background-position: center;
+    }
+    .trip-content {
+        padding: 1.5rem;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+    .trip-title {
+        margin: 0 0 0.5rem 0;
+        font-size: 1.2rem;
+        color: var(--darker);
+    }
+    .trip-meta {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+    .empty-state {
+        text-align: center;
+        padding: 3rem 2rem;
+        background: var(--white);
+        border-radius: var(--radius-lg);
+        border: 2px dashed #D1D5DB;
+        grid-column: 1 / -1;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Banner Area -->
+<div class="dashboard-banner">
+    <div class="banner-bg"></div>
+    <div class="banner-overlay"></div>
+    <div class="banner-content">
+        <h1>Where to next, {{ current_user.name.split(' ')[0] }}?</h1>
+        <form class="banner-search" action="#" method="GET" onsubmit="event.preventDefault(); alert('Destination search will be available soon!');">
+            <input type="text" placeholder="Search for destinations..." required>
+            <button type="submit">Search</button>
+        </form>
+    </div>
+</div>
+
+<!-- Recommended Destinations -->
+<h3 class="section-title">Recommended Destinations</h3>
+<div class="recommended-scroll">
+    <div class="rec-card">
+        <img src="https://images.unsplash.com/photo-1499856871958-5b9627545d1a?w=400&auto=format&fit=crop" class="rec-img" alt="Paris">
+        <div class="rec-overlay"></div>
+        <h4 class="rec-title">Paris</h4>
+    </div>
+    <div class="rec-card">
+        <img src="https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=400&auto=format&fit=crop" class="rec-img" alt="Tokyo">
+        <div class="rec-overlay"></div>
+        <h4 class="rec-title">Tokyo</h4>
+    </div>
+    <div class="rec-card">
+        <img src="https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=400&auto=format&fit=crop" class="rec-img" alt="Rome">
+        <div class="rec-overlay"></div>
+        <h4 class="rec-title">Rome</h4>
+    </div>
+    <div class="rec-card">
+        <img src="https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=400&auto=format&fit=crop" class="rec-img" alt="Bali">
+        <div class="rec-overlay"></div>
+        <h4 class="rec-title">Bali</h4>
+    </div>
+    <div class="rec-card">
+        <img src="https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=400&auto=format&fit=crop" class="rec-img" alt="London">
+        <div class="rec-overlay"></div>
+        <h4 class="rec-title">London</h4>
+    </div>
+</div>
+
+<!-- Upcoming Trips -->
+<h3 class="section-title" style="margin-top: 3rem;">
+    Upcoming Trips
+    <a href="{{ url_for('create_trip') }}" class="btn btn-primary" style="font-size: 0.9rem; padding: 0.5rem 1rem;">
+        <i class="ph ph-plus" style="margin-right: 0.5rem;"></i> New Trip
+    </a>
+</h3>
+
+{% if trips|length == 0 %}
+<div class="empty-state">
+    <i class="ph ph-paper-plane-tilt" style="font-size: 3rem; color: var(--text-muted); margin-bottom: 1rem;"></i>
+    <h3>No upcoming trips</h3>
+    <p class="text-muted" style="margin-bottom: 1.5rem;">Start exploring the world by planning your next adventure!</p>
+    <a href="{{ url_for('create_trip') }}" class="btn btn-primary">Create Your First Trip</a>
+</div>
+{% else %}
+<div class="upcoming-trips">
+    {% for trip in trips %}
+    <a href="{{ url_for('view_trip', trip_id=trip.id) }}" style="text-decoration: none; color: inherit;">
+        <div class="trip-card">
+            <div class="trip-img"></div>
+            <div class="trip-content">
+                <h4 class="trip-title">{{ trip.name }}</h4>
+                <div class="trip-meta">
+                    <i class="ph ph-calendar"></i> {{ trip.start_date.strftime('%b %d, %Y') }}
+                </div>
+                <div style="margin-top: 0.5rem; color: var(--primary); font-size: 0.9rem; font-weight: 500; display: flex; align-items: center; gap: 0.3rem;">
+                    View Details <i class="ph ph-arrow-right"></i>
+                </div>
+            </div>
+        </div>
+    </a>
+    {% endfor %}
+</div>
+{% endif %}
+{% endblock %}

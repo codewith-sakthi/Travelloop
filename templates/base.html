@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Traveloop - Personalized Travel Planning Made Easy</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+    <nav class="navbar">
+        <a href="{{ url_for('index') }}" class="nav-brand">
+            <i class="ph-fill ph-paper-plane-tilt"></i> Traveloop
+        </a>
+        <div class="nav-links">
+            {% if current_user.is_authenticated %}
+                <a href="{{ url_for('dashboard') }}" class="nav-link">Dashboard</a>
+                <a href="{{ url_for('my_trips') }}" class="nav-link">My Trips</a>
+                <a href="{{ url_for('create_trip') }}" class="btn btn-primary"><i class="ph ph-plus" style="margin-right: 0.5rem;"></i> Plan Trip</a>
+                <a href="{{ url_for('logout') }}" class="nav-link">Logout</a>
+            {% else %}
+                <a href="{{ url_for('login') }}" class="nav-link">Log In</a>
+                <a href="{{ url_for('signup') }}" class="btn btn-primary">Sign Up Free</a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <div class="flash-messages">
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="flash-msg">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <main class="container">
+        {% block content %}{% endblock %}
+    </main>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block extra_head %}
+<style>
+    .hero {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 4rem 0;
+        gap: 3rem;
+    }
+    .hero-content {
+        flex: 1;
+    }
+    .hero-title {
+        font-size: 3.5rem;
+        line-height: 1.1;
+        margin-bottom: 1.5rem;
+        background: linear-gradient(135deg, var(--primary) 0%, #a855f7 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    .hero-subtitle {
+        font-size: 1.2rem;
+        color: var(--text-muted);
+        margin-bottom: 2.5rem;
+    }
+    .hero-image {
+        flex: 1;
+        position: relative;
+    }
+    .hero-image img {
+        width: 100%;
+        border-radius: var(--radius-xl);
+        box-shadow: var(--shadow-lg);
+        transform: rotate(2deg);
+        transition: var(--transition-norm);
+    }
+    .hero-image img:hover {
+        transform: rotate(0deg) scale(1.02);
+    }
+    .features {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 2rem;
+        margin-top: 4rem;
+    }
+    .feature-card {
+        padding: 2rem;
+        text-align: center;
+    }
+    .feature-icon {
+        font-size: 3rem;
+        color: var(--primary);
+        margin-bottom: 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="hero">
+    <div class="hero-content">
+        <h1 class="hero-title">Dream, Design, and Organize.</h1>
+        <p class="hero-subtitle">Traveloop is your personalized, intelligent platform to transform the way you plan and experience travel. Create customized multi-city itineraries, estimate budgets, and share your adventures seamlessly.</p>
+        <div style="display: flex; gap: 1rem;">
+            <a href="{{ url_for('signup') }}" class="btn btn-primary" style="font-size: 1.1rem; padding: 0.8rem 1.5rem;">Start Planning Free</a>
+            <a href="#features" class="btn btn-outline" style="font-size: 1.1rem; padding: 0.8rem 1.5rem;">Explore Features</a>
+        </div>
+    </div>
+    <div class="hero-image">
+        <!-- Generate an image placeholder here -->
+        <img src="https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&q=80&w=800" alt="Travel Planning App">
+    </div>
+</div>
+
+<div id="features" class="features">
+    <div class="card feature-card">
+        <i class="ph ph-map-trifold feature-icon"></i>
+        <h3>Multi-City Itineraries</h3>
+        <p class="text-muted">Easily add and manage travel stops, durations, and activities.</p>
+    </div>
+    <div class="card feature-card">
+        <i class="ph ph-wallet feature-icon"></i>
+        <h3>Smart Budgeting</h3>
+        <p class="text-muted">Estimate your trip expenses automatically and stay on track.</p>
+    </div>
+    <div class="card feature-card">
+        <i class="ph ph-users feature-icon"></i>
+        <h3>Collaborate & Share</h3>
+        <p class="text-muted">Share your plans publicly or invite friends to co-plan your trips.</p>
+    </div>
+</div>
+{% endblock %}
