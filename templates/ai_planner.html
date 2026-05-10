@@ -116,20 +116,22 @@
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 1.5rem;">
         <div class="form-group">
             <label>Travel Type</label>
-            <select id="typeInput" class="form-control" style="width: 100%;">
-                <option value="solo">Solo Traveler</option>
-                <option value="couple">Couple</option>
-                <option value="family">Family</option>
-                <option value="friends">Friends</option>
-            </select>
+            <div class="modern-tabs" id="travelTypeTabs">
+                <div class="tab-item active" data-value="solo" onclick="setTabValue('travelType', this)">Solo</div>
+                <div class="tab-item" data-value="couple" onclick="setTabValue('travelType', this)">Couple</div>
+                <div class="tab-item" data-value="family" onclick="setTabValue('travelType', this)">Family</div>
+                <div class="tab-item" data-value="friends" onclick="setTabValue('travelType', this)">Friends</div>
+                <input type="hidden" id="typeInput" value="solo">
+            </div>
         </div>
         <div class="form-group">
             <label>Budget</label>
-            <select id="budgetInput" class="form-control" style="width: 100%;">
-                <option value="low">Budget Friendly</option>
-                <option value="medium" selected>Balanced</option>
-                <option value="high">Luxury</option>
-            </select>
+            <div class="modern-tabs" id="budgetTabs">
+                <div class="tab-item" data-value="low" onclick="setTabValue('budget', this)">Budget</div>
+                <div class="tab-item active" data-value="medium" onclick="setTabValue('budget', this)">Balanced</div>
+                <div class="tab-item" data-value="high" onclick="setTabValue('budget', this)">Luxury</div>
+                <input type="hidden" id="budgetInput" value="medium">
+            </div>
         </div>
     </div>
 
@@ -170,7 +172,7 @@
                 </ul>
             </div>
 
-            <div class="category-card" style="background: #F8FAFC;">
+            <div class="category-card" style="background: #F8FAFC; margin-bottom: 2rem;">
                 <h3 style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
                     <i data-lucide="gem" style="color: #8B5CF6;"></i> Hidden Gems
                 </h3>
@@ -178,11 +180,32 @@
                     <!-- Gems injected here -->
                 </ul>
             </div>
+
+            <div class="category-card" style="background: #EEF2FF; border-left: 4px solid var(--primary);">
+                <h3 style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <i data-lucide="info" style="color: var(--primary);"></i> Pro Tips
+                </h3>
+                <ul id="proTips" style="list-style: none; padding: 0;">
+                    <!-- Tips injected here -->
+                </ul>
+            </div>
         </div>
     </div>
 </div>
 
 <script>
+    function setTabValue(type, el) {
+        const parent = el.parentElement;
+        parent.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+        el.classList.add('active');
+        
+        if (type === 'travelType') {
+            document.getElementById('typeInput').value = el.dataset.value;
+        } else if (type === 'budget') {
+            document.getElementById('budgetInput').value = el.dataset.value;
+        }
+    }
+
     async function generatePlan() {
         const dest = document.getElementById('destInput').value;
         if (!dest) { alert('Please enter a destination'); return; }
@@ -225,7 +248,14 @@
         results.style.display = 'block';
         
         document.getElementById('resTitle').innerText = `Your ${data.destination} Adventure`;
-        document.getElementById('resSub').innerText = `${data.trip_summary.days} Days • ${data.trip_summary.travel_type} • ${data.trip_summary.budget} Budget`;
+        document.getElementById('resSub').innerHTML = `
+            <div style="display: flex; gap: 2rem; justify-content: center; margin-top: 1rem; flex-wrap: wrap;">
+                <span class="badge" style="background: #E0E7FF; color: #4338CA;"><i data-lucide="calendar" style="width:14px;"></i> ${data.trip_summary.days} Days</span>
+                <span class="badge" style="background: #FEF3C7; color: #92400E;"><i data-lucide="user" style="width:14px;"></i> ${data.trip_summary.travel_type}</span>
+                <span class="badge" style="background: #D1FAE5; color: #065F46;"><i data-lucide="wallet" style="width:14px;"></i> ${data.trip_summary.budget} Budget</span>
+                <span class="badge" style="background: #F3E8FF; color: #6B21A8;"><i data-lucide="cloud-sun" style="width:14px;"></i> ${data.trip_summary.weather_vibe}</span>
+            </div>
+        `;
 
         // Itinerary
         const itin = document.getElementById('itineraryContent');
@@ -237,32 +267,50 @@
             
             const html = `
                 <div class="day-card">
-                    <h3 style="margin-bottom: 2rem; color: var(--dark);">Day ${dayNum}</h3>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                        <h3 style="margin: 0; color: var(--dark);">Day ${dayNum}</h3>
+                        <div style="font-size: 0.8rem; background: #F1F5F9; padding: 0.4rem 0.8rem; border-radius: 50px; color: var(--muted); font-weight: 600;">
+                            ${dayData.insight}
+                        </div>
+                    </div>
                     <div class="time-slot">
                         <div class="slot-label">Morning</div>
-                        <div class="slot-content">
-                            <h4 style="color: var(--primary);">${dayData.morning[0]}</h4>
-                            <p style="font-size: 0.9rem; color: var(--muted); margin-top: 0.5rem;">Fresh start with sightseeing and exploration.</p>
+                        <div class="slot-content" style="display: flex; gap: 1.5rem; align-items: flex-start;">
+                            <img src="${dayData.morning_img}" style="width: 100px; height: 100px; border-radius: 12px; object-fit: cover; box-shadow: var(--shadow-sm);">
+                            <div>
+                                <h4 style="color: var(--primary);">${dayData.morning}</h4>
+                                <p style="font-size: 0.9rem; color: var(--muted); margin-top: 0.5rem;">Explore the main attractions and soak in the early vibes.</p>
+                            </div>
                         </div>
                     </div>
                     <div class="time-slot">
                         <div class="slot-label">Afternoon</div>
-                        <div class="slot-content">
-                            <h4 style="color: var(--primary);">${dayData.afternoon[0]}</h4>
-                            <p style="font-size: 0.9rem; color: var(--muted); margin-top: 0.5rem;">Deeper dive into local culture and landmarks.</p>
+                        <div class="slot-content" style="display: flex; gap: 1.5rem; align-items: flex-start;">
+                            <img src="${dayData.afternoon_img}" style="width: 100px; height: 100px; border-radius: 12px; object-fit: cover; box-shadow: var(--shadow-sm);">
+                            <div>
+                                <h4 style="color: var(--primary);">${dayData.afternoon}</h4>
+                                <p style="font-size: 0.9rem; color: var(--muted); margin-top: 0.5rem;">Dive deeper into the local culture and landmarks.</p>
+                            </div>
                         </div>
                     </div>
                     <div class="time-slot" style="margin-bottom: 0;">
                         <div class="slot-label">Evening</div>
-                        <div class="slot-content">
-                            <h4 style="color: var(--primary);">${dayData.evening[0]}</h4>
-                            <p style="font-size: 0.9rem; color: var(--muted); margin-top: 0.5rem;">Relaxation, dinner, and evening vibes.</p>
+                        <div class="slot-content" style="display: flex; gap: 1.5rem; align-items: flex-start;">
+                            <img src="${dayData.evening_img}" style="width: 100px; height: 100px; border-radius: 12px; object-fit: cover; box-shadow: var(--shadow-sm);">
+                            <div>
+                                <h4 style="color: var(--primary);">${dayData.evening}</h4>
+                                <p style="font-size: 0.9rem; color: var(--muted); margin-top: 0.5rem;">Wind down with a relaxing walk or a dinner with a view.</p>
+                            </div>
                         </div>
                     </div>
                 </div>
             `;
             itin.insertAdjacentHTML('beforeend', html);
         });
+
+        // Pro Tips
+        const tipList = document.getElementById('proTips');
+        tipList.innerHTML = data.pro_tips.map(t => `<li style="padding: 0.75rem 0; border-bottom: 1px solid rgba(0,0,0,0.05); font-size: 0.85rem; line-height: 1.4;">${t}</li>`).join('');
 
         // Food
         const foodList = document.getElementById('foodRecs');

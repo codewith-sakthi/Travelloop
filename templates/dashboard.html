@@ -245,7 +245,7 @@
         <div class="dest-content">
             <div class="dest-location"><i data-lucide="map-pin" style="width: 12px; height: 12px;"></i> {{ dest.country or 'India' }}</div>
             <h3 style="margin-bottom: 0.5rem; font-size: 1.2rem;">{{ dest.name }}</h3>
-            <p style="color: var(--muted); font-size: 0.9rem; margin: 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">{{ dest.description or 'A beautiful destination to explore.' }}</p>
+            <p style="color: var(--muted); font-size: 0.9rem; margin: 0; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">{{ dest.description or 'A beautiful destination to explore.' }}</p>
         </div>
     </div>
     {% endfor %}
@@ -274,7 +274,7 @@
         {% for trip in trips %}
         <a href="{{ url_for('view_trip', trip_id=trip.id) }}" style="text-decoration: none; color: inherit;">
             <div class="card trip-row-card">
-                <img src="https://images.unsplash.com/photo-1499856871958-5b9627545d1a?w=400&auto=format&fit=crop" class="trip-thumb" alt="Trip">
+                <img src="{{ trip.smart_hero_image }}" class="trip-thumb" alt="Trip">
                 <div class="trip-info">
                     <h3>{{ trip.name }}</h3>
                     <div class="trip-meta">
@@ -289,7 +289,7 @@
                         </div>
                         <div class="progress-bar">
                             {% set prog = '80%' if trip.itinerary_items|length > 0 else '10%' %}
-                            <div class="progress-fill" style="width: {{ prog }};"></div>
+                            <div class="progress-fill" data-width="{{ prog }}"></div>
                         </div>
                     </div>
                 </div>
@@ -303,5 +303,12 @@
 <a href="{{ url_for('create_trip') }}" class="btn btn-primary floating-cta">
     <i data-lucide="plus"></i> Plan a Trip
 </a>
+
+<script>
+    // Apply progress bar widths from data attributes
+    document.querySelectorAll('.progress-fill[data-width]').forEach(el => {
+        el.style.width = el.dataset.width;
+    });
+</script>
 
 {% endblock %}

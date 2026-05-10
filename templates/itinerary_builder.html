@@ -296,6 +296,36 @@
         border: 1px solid #E2E8F0;
         font-weight: 600;
     }
+    .sidebar-section {
+        margin-bottom: 2rem;
+    }
+    .sidebar-section h3 {
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 1rem;
+        letter-spacing: 0.05em;
+    }
+    .day-nav {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+        gap: 0.5rem;
+    }
+    .day-nav-btn {
+        padding: 0.5rem;
+        border-radius: var(--radius-md);
+        background: #F1F5F9;
+        color: var(--dark);
+        font-weight: 600;
+        text-align: center;
+        cursor: pointer;
+        transition: var(--transition);
+        border: 1px solid transparent;
+    }
+    .day-nav-btn:hover {
+        background: var(--primary);
+        color: var(--white);
+    }
 </style>
 {% endblock %}
 
@@ -303,6 +333,16 @@
 <div class="builder-layout animate-fade-in-up" data-trip-id="{{ trip.id }}" data-view-url="{{ url_for('view_trip', trip_id=trip.id) }}">
     <!-- Sidebar: Search & Add -->
     <div class="sidebar">
+        <!-- Day Navigation -->
+        <div class="sidebar-section">
+            <h3>Quick Navigation</h3>
+            <div class="day-nav modern-tabs">
+                {% for i in range(1, num_days + 1) %}
+                <div class="tab-item {% if loop.first %}active{% endif %}" data-day="{{ i }}" onclick="scrollToDay(this.dataset.day); document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active')); this.classList.add('active');">Day {{ i }}</div>
+                {% endfor %}
+            </div>
+        </div>
+
         <h3 style="margin-bottom: 1.5rem;">Explore Places</h3>
         
         <div class="day-selector-wrapper">
@@ -419,7 +459,7 @@
                     {% endfor %}
                 </div>
                 
-                <button class="add-section-btn" onclick="document.getElementById('targetDay').value = {{ i }}; document.getElementById('placeSearch').focus();">
+                <button class="add-section-btn" data-day="{{ i }}" onclick="document.getElementById('targetDay').value = this.dataset.day; document.getElementById('placeSearch').focus();">
                     <i data-lucide="plus-circle"></i> Add activity to Day {{ i }}
                 </button>
             </div>
@@ -427,7 +467,7 @@
         </div>
         
         <div style="margin-top: 3rem; display: flex; justify-content: flex-end; gap: 1rem;">
-            <button class="btn btn-outline" onclick="window.location.href='{{ url_for('dashboard') }}'">Discard</button>
+            <button class="btn btn-outline" onclick="window.location.href=this.dataset.url" data-url="{{ url_for('dashboard') }}">Discard</button>
             <button class="btn btn-primary" onclick="saveItinerary()" style="padding: 1rem 2rem; font-size: 1.1rem; background: var(--success); border-color: var(--success);">
                 <i data-lucide="save"></i> Save Itinerary
             </button>
@@ -453,8 +493,19 @@
     };
 
     function placeImg(p) {
-        if (p.image_url && !p.image_url.includes('1518998053401')) return p.image_url;
-        return PLACE_IMGS[p.category] || PLACE_IMGS.default;
+        // If the database already has a high-quality regional image, use it
+        if (p.image_url && p.image_url.includes('images.unsplash.com') && !p.image_url.includes('1518998053401')) {
+            return p.image_url;
+        }
+        
+        // Fallback to category-based premium images
+        const cat = p.category ? p.category.toLowerCase() : 'default';
+        if (cat.includes('hotel')) return 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&fit=crop';
+        if (cat.includes('food'))  return 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&fit=crop';
+        if (cat.includes('temple')) return 'https://images.unsplash.com/photo-1609766856923-7cba71e3d5e7?w=400&fit=crop';
+        if (cat.includes('fort'))   return 'https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=400&fit=crop';
+        
+        return 'https://images.unsplash.com/photo-1524413840807-0c3cb6fa808d?w=400&fit=crop';
     }
 
     async function loadPlaces(q = '', cat = 'all') {
@@ -635,12 +686,13 @@
             const data = await res.json();
             
             if (data.status === 'success') {
-                // For demo purposes, we'll put AI items into Day 1 or split across days
-                // Here we'll just clear Day 1 and add them there for now
-                const day1Container = document.getElementById('day1-items');
-                day1Container.innerHTML = '';
+                // Clear all day containers
+                document.querySelectorAll('.day-items-container').forEach(c => c.innerHTML = '');
                 
                 data.schedule.forEach(item => {
+                    const dayContainer = document.getElementById(`day${item.day}-items`);
+                    if (!dayContainer) return;
+
                     let iconClass = 'icon-activity';
                     let iconName = 'camera';
                     if (item.category === 'hotel') { iconClass = 'icon-hotel'; iconName = 'bed'; }
@@ -663,10 +715,15 @@
                             </div>
                         </div>
                     `;
-                    day1Container.insertAdjacentHTML('beforeend', html);
+                    dayContainer.insertAdjacentHTML('beforeend', html);
                 });
+                
                 updateBudget();
                 lucide.createIcons();
+                
+                // Jump to Day 1
+                scrollToDay(1);
+
             } else {
                 alert('AI could not generate itinerary: ' + data.error);
             }
@@ -676,6 +733,17 @@
         } finally {
             btn.innerHTML = '<i data-lucide="sparkles"></i> AI Auto-Plan';
             lucide.createIcons();
+        }
+    }
+
+    function scrollToDay(dayNum) {
+        const el = document.querySelector(`.timeline-day[data-day="${dayNum}"]`);
+        if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            // Subtle highlight
+            el.style.transition = '0.5s';
+            el.style.backgroundColor = 'rgba(139, 92, 246, 0.05)';
+            setTimeout(() => el.style.backgroundColor = 'transparent', 1500);
         }
     }
 

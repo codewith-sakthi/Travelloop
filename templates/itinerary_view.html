@@ -39,6 +39,7 @@
     .trip-title {
         font-size: 3rem;
         margin-bottom: 0.5rem;
+        color: var(--white);
     }
     
     .trip-meta {
@@ -46,6 +47,7 @@
         gap: 2rem;
         font-size: 1.1rem;
         opacity: 0.9;
+        color: var(--white);
     }
     
     .view-layout {
@@ -241,7 +243,7 @@
 <div class="animate-fade-in-up">
     <!-- Hero Header -->
     <div class="trip-hero">
-        <div class="trip-bg"></div>
+        <div class="trip-bg" style="background-image: url('{{ trip.smart_hero_image }}');"></div>
         <div class="trip-overlay"></div>
         <div class="trip-content">
             <h1 class="trip-title">{{ trip.name }}</h1>
@@ -253,7 +255,7 @@
             
             <div style="margin-top: 1.5rem; display: flex; gap: 1rem; flex-wrap: wrap;">
                 <a href="{{ url_for('build_itinerary', trip_id=trip.id) }}" class="btn btn-primary"><i data-lucide="pencil"></i> Edit Itinerary</a>
-                <a href="{{ url_for('packing_list', trip_id=trip.id) }}" class="btn btn-outline" style="border-color: rgba(255,255,255,0.5); color: white;"><i data-lucide="suitcase"></i> Packing List</a>
+                <a href="{{ url_for('packing_list', trip_id=trip.id) }}" class="btn btn-outline" style="border-color: rgba(255,255,255,0.5); color: white;"><i data-lucide="luggage"></i> Packing List</a>
                 <button class="btn btn-outline" style="border-color: rgba(255,255,255,0.5); color: white;"><i data-lucide="share-2"></i> Share Trip</button>
             </div>
         </div>

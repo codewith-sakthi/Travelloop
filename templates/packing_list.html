@@ -135,7 +135,7 @@
     <div class="packing-header">
         <div>
             <h2 style="font-size: 2.5rem; margin-bottom: 0.5rem;">Packing Checklist</h2>
-            <p style="color: var(--muted); font-size: 1.1rem;"><i data-lucide="suitcase" style="width: 18px; height: 18px; vertical-align: text-bottom;"></i> {{ trip.name }} &bull; Ready for your journey?</p>
+            <p style="color: var(--muted); font-size: 1.1rem;"><i data-lucide="luggage" style="width: 18px; height: 18px; vertical-align: text-bottom;"></i> {{ trip.name }} &bull; Ready for your journey?</p>
         </div>
         <a href="{{ url_for('view_trip', trip_id=trip.id) }}" class="btn btn-outline">
             <i data-lucide="arrow-left"></i> Back to Trip
@@ -182,11 +182,11 @@
             <div class="items-list" id="list-{{ cat_name }}">
                 {% for item in categories.get(cat_name, []) %}
                 <div class="check-item {% if item.is_packed %}packed{% endif %}" data-id="{{ item.id }}">
-                    <div class="checkbox-custom" onclick="toggleItem({{ item.id }}, this)">
+                    <div class="checkbox-custom" data-id="{{ item.id }}" onclick="toggleItem(this.dataset.id, this)">
                         <i data-lucide="check" style="width: 16px; height: 16px;"></i>
                     </div>
-                    <span class="item-text" onclick="toggleItem({{ item.id }}, this.previousElementSibling)">{{ item.item }}</span>
-                    <i data-lucide="trash-2" class="delete-item" onclick="deleteItem({{ item.id }}, this)"></i>
+                    <span class="item-text" data-id="{{ item.id }}" onclick="toggleItem(this.dataset.id, this.previousElementSibling)">{{ item.item }}</span>
+                    <i data-lucide="trash-2" class="delete-item" data-id="{{ item.id }}" onclick="deleteItem(this.dataset.id, this)"></i>
                 </div>
                 {% endfor %}
             </div>

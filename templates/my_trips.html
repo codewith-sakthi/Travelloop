@@ -163,7 +163,7 @@
 {% if trips|length == 0 %}
 <div class="card" style="text-align: center; padding: 5rem 2rem; border: 2px dashed #CBD5E1; background: transparent; box-shadow: none;">
     <div style="width: 80px; height: 80px; border-radius: 50%; background: rgba(37, 99, 235, 0.1); color: var(--primary); display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem auto;">
-        <i data-lucide="suitcase" style="width: 40px; height: 40px;"></i>
+        <i data-lucide="luggage" style="width: 40px; height: 40px;"></i>
     </div>
     <h3 style="font-size: 1.5rem;">No trips found</h3>
     <p style="color: var(--muted); max-width: 400px; margin: 0 auto 2rem auto;">You haven't planned any upcoming trips yet. Let's get started on your next adventure!</p>
@@ -207,7 +207,7 @@
                 View
             </a>
             <a href="{{ url_for('packing_list', trip_id=trip.id) }}" class="btn-icon" title="Packing Checklist">
-                <i data-lucide="suitcase" style="width: 18px; height: 18px;"></i>
+                <i data-lucide="luggage" style="width: 18px; height: 18px;"></i>
             </a>
             <a href="{{ url_for('build_itinerary', trip_id=trip.id) }}" class="btn-icon" title="Edit Trip">
                 <i data-lucide="pencil" style="width: 18px; height: 18px;"></i>

@@ -2,190 +2,424 @@
 
 {% block extra_head %}
 <style>
+    :root {
+        --auth-primary: #6366f1;
+        --auth-secondary: #a855f7;
+        --auth-bg: #0f172a;
+        --auth-card-bg: rgba(255, 255, 255, 0.05);
+        --auth-text: #f8fafc;
+        --auth-muted: #94a3b8;
+    }
+
     body {
         margin: 0;
         padding: 0;
         overflow-x: hidden;
+        background-color: var(--auth-bg);
+        color: var(--auth-text);
     }
-    .container {
-        width: 100%;
-        max-width: 100%;
-        padding: 0;
-    }
-    .auth-layout {
-        min-height: calc(100vh - 80px);
+
+    .auth-container {
+        min-height: 100vh;
         display: flex;
         align-items: center;
         justify-content: center;
         position: relative;
-        padding: 3rem 1rem;
-        margin-top: -80px; /* Offset for navbar */
-        padding-top: 100px;
+        padding: 2rem 1rem;
+        z-index: 1;
     }
-    .auth-bg {
+
+    .auth-background {
         position: fixed;
         inset: 0;
-        z-index: 0;
+        z-index: -1;
     }
-    .auth-bg img {
+
+    .auth-background img {
         width: 100%;
         height: 100%;
         object-fit: cover;
+        opacity: 0.6;
     }
-    .auth-blur {
+
+    .auth-overlay {
         position: absolute;
         inset: 0;
-        background: rgba(15, 23, 42, 0.5);
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
+        background: radial-gradient(circle at center, transparent 0%, rgba(15, 23, 42, 0.8) 100%);
     }
-    .auth-card {
-        background: rgba(255, 255, 255, 0.95);
+
+    .auth-card-wrapper {
         width: 100%;
-        max-width: 600px;
+        max-width: 500px;
+        perspective: 1000px;
+    }
+
+    .auth-card {
+        background: rgba(15, 23, 42, 0.7);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 24px;
         padding: 3rem;
-        position: relative;
-        z-index: 10;
-        animation: fadeInUp 0.6s ease;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        animation: cardAppear 0.8s cubic-bezier(0.16, 1, 0.3, 1);
     }
-    .avatar-upload {
-        width: 100px;
-        height: 100px;
-        border-radius: 50%;
-        background: #F1F5F9;
-        margin: 0 auto 2rem auto;
-        border: 2px dashed #CBD5E1;
+
+    @keyframes cardAppear {
+        from {
+            opacity: 0;
+            transform: translateY(30px) scale(0.95);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+
+    .auth-logo {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .auth-title {
+        font-size: 2.25rem;
+        font-weight: 800;
+        text-align: center;
+        margin-bottom: 0.5rem;
+        background: linear-gradient(to right, #fff, #94a3b8);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        letter-spacing: -0.025em;
+    }
+
+    .auth-subtitle {
+        color: var(--auth-muted);
+        text-align: center;
+        margin-bottom: 2.5rem;
+        font-size: 1rem;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+        position: relative;
+    }
+
+    .form-label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--auth-muted);
+        transition: color 0.2s;
+    }
+
+    .input-wrapper {
+        position: relative;
         display: flex;
         align-items: center;
-        justify-content: center;
-        color: var(--muted);
-        cursor: pointer;
-        position: relative;
-        transition: var(--transition);
     }
-    .avatar-upload:hover {
-        border-color: var(--primary);
-        color: var(--primary);
-    }
-    .avatar-badge {
+
+    .input-icon {
         position: absolute;
-        bottom: 0;
-        right: 0;
-        width: 32px;
-        height: 32px;
-        background: var(--white);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        box-shadow: var(--shadow-soft);
-        color: var(--primary);
+        left: 1rem;
+        color: var(--auth-muted);
+        transition: color 0.2s;
     }
-    .grid-2 {
+
+    .auth-input {
+        width: 100%;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        padding: 0.75rem 1rem 0.75rem 3rem;
+        color: white;
+        font-size: 1rem;
+        transition: all 0.3s;
+        outline: none;
+    }
+
+    .auth-input:focus {
+        background: rgba(255, 255, 255, 0.08);
+        border-color: var(--auth-primary);
+        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.2);
+    }
+
+    .auth-input:focus + .input-icon {
+        color: var(--auth-primary);
+    }
+
+    .btn-auth {
+        width: 100%;
+        background: linear-gradient(135deg, var(--auth-primary), var(--auth-secondary));
+        color: white;
+        border: none;
+        border-radius: 12px;
+        padding: 1rem;
+        font-size: 1.125rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        margin-top: 1rem;
+        box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.3);
+    }
+
+    .btn-auth:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 20px 25px -5px rgba(99, 102, 241, 0.4);
+        filter: brightness(1.1);
+    }
+
+    .btn-auth:active {
+        transform: translateY(0);
+    }
+
+    .auth-footer {
+        margin-top: 2rem;
+        text-align: center;
+        font-size: 0.875rem;
+        color: var(--auth-muted);
+    }
+
+    .auth-link {
+        color: var(--auth-primary);
+        text-decoration: none;
+        font-weight: 600;
+        margin-left: 0.25rem;
+        transition: color 0.2s;
+    }
+
+    .auth-link:hover {
+        color: var(--auth-secondary);
+    }
+
+    /* Grid for side-by-side inputs */
+    .input-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 1.25rem;
+        gap: 1rem;
     }
+
     @media (max-width: 640px) {
-        .grid-2 { grid-template-columns: 1fr; }
+        .input-grid {
+            grid-template-columns: 1fr;
+        }
+        .auth-card {
+            padding: 2rem;
+        }
+    }
+
+    /* Custom Select Styling */
+    select.auth-input {
+        appearance: none;
+        cursor: pointer;
+    }
+
+    .select-arrow {
+        position: absolute;
+        right: 1rem;
+        pointer-events: none;
+        color: var(--auth-muted);
+    }
+
+    /* Password strength meter */
+    .strength-meter {
+        height: 4px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 2px;
+        margin-top: 0.5rem;
+        overflow: hidden;
+    }
+
+    .strength-bar {
+        height: 100%;
+        width: 0;
+        transition: all 0.3s;
+    }
+
+    .strength-text {
+        font-size: 0.75rem;
+        margin-top: 0.25rem;
+        color: var(--auth-muted);
+    }
+
+    /* Custom Scrollbar for Select */
+    select option {
+        background: #1e293b;
+        color: white;
+    }
+
+    /* Success Message Animation */
+    .success-mark {
+        color: #10b981;
+        margin-left: auto;
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="auth-layout">
-    <div class="auth-bg">
-        <img src="https://images.unsplash.com/photo-1506929562872-bb421503ef21?w=1600&auto=format&fit=crop" alt="Travel Background">
-        <div class="auth-blur"></div>
+<div class="auth-container">
+    <div class="auth-background">
+        <img src="{{ url_for('static', filename='images/auth_bg.png') }}" alt="Travel Background" onerror="this.src='https://images.unsplash.com/photo-1506929562872-bb421503ef21?w=1600&auto=format&fit=crop'">
+        <div class="auth-overlay"></div>
     </div>
 
-    <div class="glass-card auth-card">
-        <div style="text-align: center; margin-bottom: 2rem;">
-            <h2 style="font-size: 2rem; margin-bottom: 0.5rem;">Create Account</h2>
-            <p style="color: var(--muted);">Join Traveloop to start designing your dream trips.</p>
-        </div>
-
-        <form method="POST" action="{{ url_for('signup') }}">
-            
-            <div class="avatar-upload">
-                <i data-lucide="user" style="width: 40px; height: 40px;"></i>
-                <div class="avatar-badge">
-                    <i data-lucide="camera" style="width: 16px; height: 16px;"></i>
-                </div>
-            </div>
-
-            <div class="grid-2">
-                <div class="form-group">
-                    <label class="form-label" for="first_name">First Name</label>
-                    <input type="text" id="first_name" name="name" class="form-control" required placeholder="John">
-                </div>
-                <div class="form-group">
-                    <label class="form-label" for="last_name">Last Name</label>
-                    <input type="text" id="last_name" name="last_name" class="form-control" placeholder="Doe">
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label class="form-label" for="email">Email Address</label>
-                <div class="input-icon-wrapper">
-                    <i data-lucide="mail" class="input-icon"></i>
-                    <input type="email" id="email" name="email" class="form-control with-icon" required placeholder="you@example.com">
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label class="form-label" for="password">Password</label>
-                <div class="input-icon-wrapper">
-                    <i data-lucide="lock" class="input-icon"></i>
-                    <input type="password" id="password" name="password" class="form-control with-icon" required placeholder="••••••••">
-                </div>
+    <div class="auth-card-wrapper">
+        <div class="auth-card">
+            <div class="auth-logo">
+                <i data-lucide="compass" style="width: 48px; height: 48px; color: var(--auth-primary); margin-bottom: 1rem;"></i>
             </div>
             
-            <div class="grid-2">
-                <div class="form-group">
-                    <label class="form-label" for="phone">Phone Number</label>
-                    <div class="input-icon-wrapper">
-                        <i data-lucide="phone" class="input-icon"></i>
-                        <input type="tel" id="phone" name="phone" class="form-control with-icon" placeholder="+1 (555) 000-0000">
+            <h1 class="auth-title">Create Account</h1>
+            <p class="auth-subtitle">Begin your extraordinary journey with Traveloop.</p>
+
+            <form method="POST" action="{{ url_for('signup') }}" id="signup-form">
+                <div class="input-grid">
+                    <div class="form-group">
+                        <label class="form-label" for="name">First Name</label>
+                        <div class="input-wrapper">
+                            <i data-lucide="user" class="input-icon"></i>
+                            <input type="text" id="name" name="name" class="auth-input" required placeholder="John">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="last_name">Last Name</label>
+                        <div class="input-wrapper">
+                            <i data-lucide="user-plus" class="input-icon"></i>
+                            <input type="text" id="last_name" name="last_name" class="auth-input" placeholder="Doe">
+                        </div>
                     </div>
                 </div>
+
                 <div class="form-group">
-                    <label class="form-label" for="city">City</label>
-                    <div class="input-icon-wrapper">
-                        <i data-lucide="map-pin" class="input-icon"></i>
-                        <input type="text" id="city" name="city" class="form-control with-icon" placeholder="New York">
+                    <label class="form-label" for="email">Email Address</label>
+                    <div class="input-wrapper">
+                        <i data-lucide="mail" class="input-icon"></i>
+                        <input type="email" id="email" name="email" class="auth-input" required placeholder="name@company.com">
                     </div>
                 </div>
-            </div>
 
-            <div class="form-group">
-                <label class="form-label" for="country">Country</label>
-                <div class="input-icon-wrapper">
-                    <i data-lucide="globe" class="input-icon"></i>
-                    <select id="country" name="country" class="form-control with-icon" style="appearance: none; background-color: #F1F5F9;">
-                        <option value="">Select Country</option>
-                        <option value="US">United States</option>
-                        <option value="UK">United Kingdom</option>
-                        <option value="CA">Canada</option>
-                        <option value="AU">Australia</option>
-                    </select>
+                <div class="form-group">
+                    <label class="form-label" for="password">Password</label>
+                    <div class="input-wrapper">
+                        <i data-lucide="lock" class="input-icon"></i>
+                        <input type="password" id="password" name="password" class="auth-input" required placeholder="••••••••">
+                    </div>
+                    <div class="strength-meter">
+                        <div class="strength-bar" id="strength-bar"></div>
+                    </div>
+                    <p class="strength-text" id="strength-text">Password must be at least 8 characters.</p>
                 </div>
+
+                <div class="input-grid">
+                    <div class="form-group">
+                        <label class="form-label" for="country">Country</label>
+                        <div class="input-wrapper">
+                            <i data-lucide="globe" class="input-icon"></i>
+                            <select id="country" name="country" class="auth-input" required>
+                                <option value="" disabled selected>Select country</option>
+                                <!-- Populated by JS -->
+                            </select>
+                            <i data-lucide="chevron-down" class="select-arrow" style="width: 16px; height: 16px;"></i>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="city">City</label>
+                        <div class="input-wrapper">
+                            <i data-lucide="map-pin" class="input-icon"></i>
+                            <input type="text" id="city" name="city" class="auth-input" placeholder="London">
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-auth">
+                    Sign Up
+                </button>
+            </form>
+
+            <div class="auth-footer">
+                Already have an account? 
+                <a href="{{ url_for('login') }}" class="auth-link">Sign In</a>
             </div>
-
-            <div class="form-group">
-                <label class="form-label" for="info">Additional Information</label>
-                <textarea id="info" name="info" class="form-control" rows="3" placeholder="Tell us about your travel preferences..."></textarea>
-            </div>
-
-            <button type="submit" class="btn btn-primary w-full" style="margin-top: 1rem; padding: 1rem; font-size: 1.1rem;">
-                Register
-            </button>
-        </form>
-
-        <div style="text-align: center; margin-top: 2rem; font-size: 0.9rem; color: var(--muted);">
-            Already have an account? 
-            <a href="{{ url_for('login') }}" style="color: var(--primary); text-decoration: none; font-weight: 600;">Log In</a>
         </div>
     </div>
 </div>
+
+<script>
+    // Fetch and populate countries
+    async function populateCountries() {
+        const countrySelect = document.getElementById('country');
+        try {
+            const response = await fetch('https://restcountries.com/v3.1/all?fields=name,cca2');
+            const countries = await response.json();
+            
+            // Sort countries alphabetically
+            countries.sort((a, b) => a.name.common.localeCompare(b.name.common));
+            
+            countries.forEach(country => {
+                const option = document.createElement('option');
+                option.value = country.cca2;
+                option.textContent = country.name.common;
+                countrySelect.appendChild(option);
+            });
+        } catch (error) {
+            console.error('Error fetching countries:', error);
+            // Fallback common countries if API fails
+            const fallback = [
+                {name: 'United States', code: 'US'},
+                {name: 'United Kingdom', code: 'GB'},
+                {name: 'Canada', code: 'CA'},
+                {name: 'Australia', code: 'AU'},
+                {name: 'India', code: 'IN'},
+                {name: 'Germany', code: 'DE'},
+                {name: 'France', code: 'FR'}
+            ];
+            fallback.forEach(c => {
+                const option = document.createElement('option');
+                option.value = c.code;
+                option.textContent = c.name;
+                countrySelect.appendChild(option);
+            });
+        }
+    }
+
+    // Password strength logic
+    const passwordInput = document.getElementById('password');
+    const strengthBar = document.getElementById('strength-bar');
+    const strengthText = document.getElementById('strength-text');
+
+    passwordInput.addEventListener('input', () => {
+        const val = passwordInput.value;
+        let strength = 0;
+        
+        if (val.length >= 8) strength += 25;
+        if (val.match(/[A-Z]/)) strength += 25;
+        if (val.match(/[0-9]/)) strength += 25;
+        if (val.match(/[^A-Za-z0-9]/)) strength += 25;
+
+        strengthBar.style.width = strength + '%';
+        
+        if (strength <= 25) {
+            strengthBar.style.backgroundColor = '#ef4444';
+            strengthText.textContent = 'Weak password';
+        } else if (strength <= 50) {
+            strengthBar.style.backgroundColor = '#f59e0b';
+            strengthText.textContent = 'Better, but could be stronger';
+        } else if (strength <= 75) {
+            strengthBar.style.backgroundColor = '#3b82f6';
+            strengthText.textContent = 'Strong password';
+        } else {
+            strengthBar.style.backgroundColor = '#10b981';
+            strengthText.textContent = 'Perfect password!';
+        }
+    });
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+        populateCountries();
+        // Lucide icons are usually initialized by base.html, but let's be sure if needed
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    });
+</script>
 {% endblock %}

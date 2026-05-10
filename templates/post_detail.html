@@ -59,7 +59,7 @@
 
 {% block content %}
 <div class="post-hero">
-    <img src="{{ post.trip.cover_photo or 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1200' }}" class="hero-img">
+    <img src="{{ post.trip.smart_hero_image }}" class="hero-img">
     <div class="hero-overlay">
         <h1 style="font-size: 3rem; margin-bottom: 1rem;">{{ post.title }}</h1>
         <div style="display: flex; gap: 2rem; font-weight: 600;">
@@ -80,7 +80,7 @@
                 <div style="color: var(--muted); font-size: 0.9rem;">Shared on {{ post.created_at.strftime('%B %d, %Y') }}</div>
             </div>
             <div style="margin-left: auto;">
-                <button class="btn btn-primary" onclick="copyTrip({{ post.trip_id }}, this)">
+                <button class="btn btn-primary" data-trip-id="{{ post.trip_id }}" onclick="copyTrip(this.dataset.tripId, this)">
                     <i data-lucide="copy"></i> Save as My Trip
                 </button>
             </div>
@@ -118,8 +118,8 @@
         <div class="card" style="position: sticky; top: 100px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
                 <h3 style="margin: 0;">Interaction</h3>
-                <div class="stat-item {% if is_liked %}liked{% endif %}" style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; color: {% if is_liked %}var(--danger){% else %}var(--muted){% endif %};" onclick="toggleLike({{ post.id }}, this)">
-                    <i data-lucide="heart" style="fill: {% if is_liked %}currentColor{% else %}none{% endif %};"></i>
+                <div class="stat-item {% if is_liked %}liked{% endif %}" data-post-id="{{ post.id }}" data-liked="{{ 'true' if is_liked else 'false' }}" style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;" onclick="toggleLike(this.dataset.postId, this)">
+                    <i data-lucide="heart"></i>
                     <span class="like-count" style="font-weight: 700;">{{ post.likes|length }}</span>
                 </div>
             </div>

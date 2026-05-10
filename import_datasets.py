@@ -56,9 +56,38 @@ def import_top_places(csv_path):
         db.session.commit()
         print(f"Successfully imported {count} new places into the database!")
 
+def import_guwahati_places(csv_path):
+    print(f"Importing Guwahati places from {csv_path}...")
+    count = 0
+    with app.app_context():
+        with open(csv_path, 'r', encoding='utf-8') as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                name = row.get('POI_Name') or row.get('Name')
+                if not name: continue
+                
+                desc = row.get('Characteristics', '')
+                category = 'activity'
+                
+                if not Place.query.filter_by(name=name).first():
+                    place = Place(
+                        name=name,
+                        category=category,
+                        country="Guwahati, Assam",
+                        popularity=4.5,
+                        description=desc,
+                        image_url="https://images.unsplash.com/photo-1518998053401-a4149019651c?w=200"
+                    )
+                    db.session.add(place)
+                    count += 1
+        db.session.commit()
+        print(f"Successfully imported {count} Guwahati places!")
+
 if __name__ == '__main__':
     dataset_path = os.path.join(os.path.dirname(__file__), 'Datasets', 'Top Indian Places to Visit.csv')
     if os.path.exists(dataset_path):
         import_top_places(dataset_path)
-    else:
-        print("Dataset not found at:", dataset_path)
+    
+    guwahati_path = os.path.join(os.path.dirname(__file__), 'Datasets', 'Destinations_guwahati.csv')
+    if os.path.exists(guwahati_path):
+        import_guwahati_places(guwahati_path)

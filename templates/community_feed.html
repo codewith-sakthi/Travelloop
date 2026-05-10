@@ -133,7 +133,7 @@
     {% for post in posts %}
     <div class="post-card">
         <a href="{{ url_for('view_post', post_id=post.id) }}">
-            <img src="{{ post.trip.cover_photo or 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=600' }}" class="post-img" alt="{{ post.title }}">
+            <img src="{{ post.trip.smart_hero_image }}" class="post-img" alt="{{ post.title }}">
         </a>
         <div class="post-content">
             <div class="post-author">
@@ -147,18 +147,17 @@
             <p>{{ post.description }}</p>
             
             <div class="post-stats">
-                <div class="stat-item {% if post.id in liked_post_ids %}liked{% endif %}" onclick="toggleLike({{ post.id }}, this)">
-                    <i data-lucide="heart" style="width: 18px; height: 18px; fill: {% if post.id in liked_post_ids %}currentColor{% else %}none{% endif %};"></i>
+                <div class="stat-item" data-post-id="{{ post.id }}" data-liked="{{ 'true' if post.id in liked_post_ids else 'false' }}" onclick="toggleLike(this.dataset.postId, this)">
+                    <i data-lucide="heart" style="width: 18px; height: 18px;"></i>
                     <span class="like-count">{{ post.likes|length }}</span>
                 </div>
                 <div class="stat-item">
                     <i data-lucide="message-circle" style="width: 18px; height: 18px;"></i>
                     <span>{{ post.comments|length }}</span>
                 </div>
-                <div class="stat-item" onclick="copyTrip({{ post.trip_id }}, this)">
-                    <i data-lucide="copy" style="width: 18px; height: 18px;"></i>
-                    <span>Inspiration</span>
-                </div>
+                <button class="btn btn-primary" data-trip-id="{{ post.trip_id }}" onclick="copyTrip(this.dataset.tripId, this)">
+                    <i data-lucide="copy"></i> Save as My Trip
+                </button>
             </div>
         </div>
     </div>
@@ -198,6 +197,17 @@
 </div>
 
 <script>
+    // Initialize liked state from server-rendered data attributes
+    document.querySelectorAll('.stat-item[data-liked]').forEach(el => {
+        const icon = el.querySelector('i[data-lucide="heart"]');
+        if (el.dataset.liked === 'true') {
+            el.classList.add('liked');
+            if (icon) icon.style.fill = 'currentColor';
+        } else {
+            if (icon) icon.style.fill = 'none';
+        }
+    });
+
     async function toggleLike(postId, el) {
         const res = await fetch(`/community/post/${postId}/like`, { method: 'POST' });
         const data = await res.json();
@@ -205,10 +215,10 @@
             const icon = el.querySelector('i');
             if (data.liked) {
                 el.classList.add('liked');
-                icon.style.fill = 'currentColor';
+                if (icon) icon.style.fill = 'currentColor';
             } else {
                 el.classList.remove('liked');
-                icon.style.fill = 'none';
+                if (icon) icon.style.fill = 'none';
             }
             el.querySelector('.like-count').innerText = data.count;
         }
