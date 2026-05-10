@@ -3,50 +3,73 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Traveloop - Personalized Travel Planning Made Easy</title>
+    <title>Traveloop - Premium Travel Planning</title>
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- Main CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <!-- Phosphor Icons -->
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
     {% block extra_head %}{% endblock %}
 </head>
 <body>
 
     <nav class="navbar">
         <a href="{{ url_for('index') }}" class="nav-brand">
-            <i class="ph-fill ph-paper-plane-tilt"></i> Traveloop
+            <i data-lucide="plane" style="color: var(--primary);"></i> Traveloop
         </a>
+        
+        <!-- Smart Search Bar (Mockup for UI) -->
+        <div class="nav-search hidden-mobile" style="flex: 1; max-width: 400px; margin: 0 2rem; position: relative;">
+            <i data-lucide="search" class="input-icon"></i>
+            <input type="text" class="form-control with-icon" style="border-radius: var(--radius-full); background: #F1F5F9;" placeholder="Search destinations, trips, users...">
+        </div>
+
         <div class="nav-links">
             {% if current_user.is_authenticated %}
                 <a href="{{ url_for('dashboard') }}" class="nav-link">Dashboard</a>
                 <a href="{{ url_for('my_trips') }}" class="nav-link">My Trips</a>
-                <a href="{{ url_for('create_trip') }}" class="btn btn-primary"><i class="ph ph-plus" style="margin-right: 0.5rem;"></i> Plan Trip</a>
-                <a href="{{ url_for('logout') }}" class="nav-link">Logout</a>
+                <a href="{{ url_for('create_trip') }}" class="btn btn-primary">
+                    <i data-lucide="plus" style="width: 18px; height: 18px;"></i> Plan Trip
+                </a>
+                
+                <!-- Notification Bell -->
+                <div style="position: relative; cursor: pointer; padding: 0.5rem; color: var(--muted);">
+                    <i data-lucide="bell"></i>
+                    <span style="position: absolute; top: 8px; right: 8px; width: 8px; height: 8px; background: var(--danger); border-radius: 50%; border: 2px solid var(--white);"></span>
+                </div>
+                
+                <!-- Profile Avatar -->
+                <a href="{{ url_for('logout') }}" style="width: 36px; height: 36px; border-radius: 50%; background: #E2E8F0; display: flex; align-items: center; justify-content: center; color: var(--muted);">
+                    <i data-lucide="user"></i>
+                </a>
             {% else %}
                 <a href="{{ url_for('login') }}" class="nav-link">Log In</a>
-                <a href="{{ url_for('signup') }}" class="btn btn-primary">Sign Up Free</a>
+                <a href="{{ url_for('signup') }}" class="btn btn-primary">Create Account</a>
             {% endif %}
         </div>
     </nav>
 
-    <div class="flash-messages">
+    <div class="flash-messages" style="position: fixed; top: 80px; right: 2rem; z-index: 9999;">
         {% with messages = get_flashed_messages() %}
             {% if messages %}
                 {% for message in messages %}
-                    <div class="flash-msg">{{ message }}</div>
+                    <div class="glass-card" style="padding: 1rem 1.5rem; margin-bottom: 0.5rem; border-left: 4px solid var(--primary); animation: fadeInUp 0.3s ease;">{{ message }}</div>
                 {% endfor %}
             {% endif %}
         {% endwith %}
     </div>
 
-    <main class="container">
+    <main class="container animate-fade-in-up">
         {% block content %}{% endblock %}
     </main>
 
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script>
+        // Initialize Lucide Icons
+        lucide.createIcons();
+    </script>
 </body>
 </html>

@@ -2,273 +2,332 @@
 
 {% block extra_head %}
 <style>
-    /* Banner Area */
-    .dashboard-banner {
+    /* Hero Banner */
+    .hero-banner {
         position: relative;
-        height: 300px;
+        height: 400px;
         border-radius: var(--radius-xl);
         overflow: hidden;
-        margin-bottom: 3rem;
+        margin-top: 1rem;
+        margin-bottom: 4rem;
+        box-shadow: var(--shadow-float);
+    }
+    .hero-bg {
+        position: absolute;
+        inset: 0;
+        background-image: url('https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=1600&auto=format&fit=crop');
+        background-size: cover;
+        background-position: center;
+        transition: transform 10s ease;
+    }
+    .hero-banner:hover .hero-bg {
+        transform: scale(1.05);
+    }
+    .hero-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(90deg, rgba(15, 23, 42, 0.9) 0%, rgba(15, 23, 42, 0.4) 50%, transparent 100%);
+    }
+    .hero-content {
+        position: relative;
+        z-index: 10;
+        height: 100%;
         display: flex;
         flex-direction: column;
         justify-content: center;
-        align-items: center;
-        text-align: center;
+        padding: 0 4rem;
+        max-width: 800px;
         color: var(--white);
+        animation: fadeInUp 0.6s ease;
     }
-    .banner-bg {
-        position: absolute;
-        inset: 0;
-        background-image: url('https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=1200&auto=format&fit=crop');
-        background-size: cover;
-        background-position: center;
-        z-index: 1;
+    .hero-subtitle {
+        color: var(--accent);
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        font-weight: 600;
+        font-size: 0.85rem;
+        margin-bottom: 1rem;
     }
-    .banner-overlay {
-        position: absolute;
-        inset: 0;
-        background: rgba(0, 0, 0, 0.4);
-        z-index: 2;
-    }
-    .banner-content {
-        position: relative;
-        z-index: 3;
-        width: 100%;
-        max-width: 600px;
-        padding: 0 2rem;
-    }
-    .banner-content h1 {
+    .hero-title {
+        font-size: 3.5rem;
         color: var(--white);
-        font-size: 2.5rem;
         margin-bottom: 1.5rem;
-        font-weight: 800;
+        line-height: 1.1;
+    }
+    .hero-desc {
+        font-size: 1.1rem;
+        color: rgba(255, 255, 255, 0.8);
+        margin-bottom: 2rem;
+        max-width: 500px;
     }
     
-    /* Search Bar in Banner */
-    .banner-search {
-        display: flex;
-        background: var(--white);
-        border-radius: var(--radius-xl);
-        overflow: hidden;
-        box-shadow: var(--shadow-lg);
-        padding: 0.3rem;
-    }
-    .banner-search input {
-        flex: 1;
-        border: none;
-        padding: 1rem 1.5rem;
-        font-size: 1rem;
-        outline: none;
-        border-radius: var(--radius-xl) 0 0 var(--radius-xl);
-        color: var(--darker);
-    }
-    .banner-search button {
-        background: var(--primary);
-        color: var(--white);
-        border: none;
-        padding: 0 2rem;
-        border-radius: var(--radius-xl);
-        font-weight: 600;
-        cursor: pointer;
-        transition: var(--transition-norm);
-    }
-    .banner-search button:hover {
-        background: var(--primary-hover);
-    }
-
-    /* Section Titles */
-    .section-title {
-        font-size: 1.5rem;
-        margin-bottom: 1.5rem;
+    /* Top Destinations */
+    .section-header {
         display: flex;
         justify-content: space-between;
-        align-items: center;
-        color: var(--darker);
+        align-items: flex-end;
+        margin-bottom: 2rem;
     }
-
-    /* Recommended Destinations (Horizontal scroll) */
-    .recommended-scroll {
-        display: flex;
+    .section-header h2 {
+        font-size: 1.8rem;
+        margin-bottom: 0.5rem;
+    }
+    .section-header p {
+        color: var(--muted);
+        margin: 0;
+    }
+    .dest-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
         gap: 1.5rem;
-        overflow-x: auto;
-        padding-bottom: 1rem;
-        scrollbar-width: none; /* Firefox */
+        margin-bottom: 4rem;
     }
-    .recommended-scroll::-webkit-scrollbar {
-        display: none; /* Safari and Chrome */
-    }
-    .rec-card {
-        min-width: 200px;
-        border-radius: var(--radius-lg);
+    .dest-card {
+        padding: 0;
         overflow: hidden;
-        position: relative;
-        height: 250px;
-        box-shadow: var(--shadow-sm);
         cursor: pointer;
-        transition: var(--transition-norm);
-        flex-shrink: 0;
     }
-    .rec-card:hover {
-        transform: translateY(-5px);
-        box-shadow: var(--shadow-lg);
+    .dest-img-wrap {
+        position: relative;
+        height: 200px;
+        overflow: hidden;
     }
-    .rec-img {
+    .dest-img {
         width: 100%;
         height: 100%;
         object-fit: cover;
+        transition: transform 0.5s ease;
     }
-    .rec-overlay {
+    .dest-card:hover .dest-img {
+        transform: scale(1.1);
+    }
+    .dest-rating {
         position: absolute;
-        inset: 0;
-        background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 60%);
-    }
-    .rec-title {
-        position: absolute;
-        bottom: 1.5rem;
-        left: 1.5rem;
-        color: var(--white);
-        margin: 0;
-        font-size: 1.25rem;
-        font-weight: 600;
-    }
-
-    /* Upcoming Trips */
-    .upcoming-trips {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-        gap: 2rem;
-        margin-bottom: 3rem;
-    }
-    .trip-card {
-        display: flex;
-        background: var(--white);
-        border-radius: var(--radius-lg);
-        overflow: hidden;
-        box-shadow: var(--shadow-md);
-        transition: var(--transition-norm);
-        border: 1px solid var(--light);
-        height: 140px;
-    }
-    .trip-card:hover {
-        transform: translateY(-5px);
-        box-shadow: var(--shadow-lg);
-        border-color: var(--primary);
-    }
-    .trip-img {
-        width: 140px;
-        background-color: var(--light);
-        background-image: url('https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=400&auto=format&fit=crop');
-        background-size: cover;
-        background-position: center;
-    }
-    .trip-content {
-        padding: 1.5rem;
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-    }
-    .trip-title {
-        margin: 0 0 0.5rem 0;
-        font-size: 1.2rem;
-        color: var(--darker);
-    }
-    .trip-meta {
-        color: var(--text-muted);
-        font-size: 0.9rem;
+        top: 1rem;
+        right: 1rem;
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(4px);
+        padding: 0.25rem 0.5rem;
+        border-radius: var(--radius-sm);
+        font-weight: 700;
+        font-size: 0.85rem;
         display: flex;
         align-items: center;
-        gap: 0.5rem;
+        gap: 0.25rem;
+        color: var(--dark);
+    }
+    .dest-content {
+        padding: 1.5rem;
+    }
+    .dest-location {
+        color: var(--muted);
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
         margin-bottom: 0.5rem;
     }
-    .empty-state {
-        text-align: center;
-        padding: 3rem 2rem;
-        background: var(--white);
-        border-radius: var(--radius-lg);
-        border: 2px dashed #D1D5DB;
-        grid-column: 1 / -1;
+    
+    /* Trips Grid */
+    .trips-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 4rem;
+    }
+    .trip-row-card {
+        display: flex;
+        padding: 1rem;
+        gap: 1.5rem;
+        align-items: center;
+        cursor: pointer;
+    }
+    .trip-thumb {
+        width: 120px;
+        height: 120px;
+        border-radius: var(--radius-md);
+        object-fit: cover;
+    }
+    .trip-info {
+        flex: 1;
+    }
+    .trip-info h3 {
+        font-size: 1.25rem;
+        margin-bottom: 0.5rem;
+    }
+    .trip-meta {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        color: var(--muted);
+        font-size: 0.85rem;
+        margin-bottom: 1rem;
+    }
+    .progress-wrap {
+        width: 100%;
+    }
+    .progress-bar {
+        height: 6px;
+        background: #F1F5F9;
+        border-radius: var(--radius-full);
+        overflow: hidden;
+        margin-top: 0.5rem;
+    }
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--primary), #3B82F6);
+        border-radius: var(--radius-full);
+    }
+    
+    /* Floating CTA */
+    .floating-cta {
+        position: fixed;
+        bottom: 2rem;
+        right: 2rem;
+        z-index: 100;
+        box-shadow: 0 10px 40px rgba(37, 99, 235, 0.4);
+        padding: 1rem 2rem;
+        font-size: 1.1rem;
+    }
+    
+    @media (max-width: 768px) {
+        .hero-content { padding: 0 2rem; }
+        .hero-title { font-size: 2.5rem; }
+        .trips-grid { grid-template-columns: 1fr; }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<!-- Banner Area -->
-<div class="dashboard-banner">
-    <div class="banner-bg"></div>
-    <div class="banner-overlay"></div>
-    <div class="banner-content">
-        <h1>Where to next, {{ current_user.name.split(' ')[0] }}?</h1>
-        <form class="banner-search" action="#" method="GET" onsubmit="event.preventDefault(); alert('Destination search will be available soon!');">
-            <input type="text" placeholder="Search for destinations..." required>
-            <button type="submit">Search</button>
-        </form>
+<!-- Hero Banner -->
+<div class="hero-banner">
+    <div class="hero-bg"></div>
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+        <div class="hero-subtitle">Explore the world</div>
+        <h1 class="hero-title">Design your dream journey, effortlessly.</h1>
+        <p class="hero-desc">Plan multi-city itineraries, estimate budgets, and invite friends to co-plan your next big adventure.</p>
+        <div>
+            <a href="{{ url_for('create_trip') }}" class="btn btn-primary" style="padding: 1rem 2rem; font-size: 1.1rem;">
+                <i data-lucide="compass"></i> Plan Your Dream Trip
+            </a>
+        </div>
     </div>
 </div>
 
-<!-- Recommended Destinations -->
-<h3 class="section-title">Recommended Destinations</h3>
-<div class="recommended-scroll">
-    <div class="rec-card">
-        <img src="https://images.unsplash.com/photo-1499856871958-5b9627545d1a?w=400&auto=format&fit=crop" class="rec-img" alt="Paris">
-        <div class="rec-overlay"></div>
-        <h4 class="rec-title">Paris</h4>
+<!-- Top Regional Selections -->
+<div class="section-header">
+    <div>
+        <h2>Top Destinations</h2>
+        <p>Discover curated locations for your next adventure.</p>
     </div>
-    <div class="rec-card">
-        <img src="https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=400&auto=format&fit=crop" class="rec-img" alt="Tokyo">
-        <div class="rec-overlay"></div>
-        <h4 class="rec-title">Tokyo</h4>
-    </div>
-    <div class="rec-card">
-        <img src="https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=400&auto=format&fit=crop" class="rec-img" alt="Rome">
-        <div class="rec-overlay"></div>
-        <h4 class="rec-title">Rome</h4>
-    </div>
-    <div class="rec-card">
-        <img src="https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=400&auto=format&fit=crop" class="rec-img" alt="Bali">
-        <div class="rec-overlay"></div>
-        <h4 class="rec-title">Bali</h4>
-    </div>
-    <div class="rec-card">
-        <img src="https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=400&auto=format&fit=crop" class="rec-img" alt="London">
-        <div class="rec-overlay"></div>
-        <h4 class="rec-title">London</h4>
-    </div>
-</div>
-
-<!-- Upcoming Trips -->
-<h3 class="section-title" style="margin-top: 3rem;">
-    Upcoming Trips
-    <a href="{{ url_for('create_trip') }}" class="btn btn-primary" style="font-size: 0.9rem; padding: 0.5rem 1rem;">
-        <i class="ph ph-plus" style="margin-right: 0.5rem;"></i> New Trip
+    <a href="#" style="color: var(--primary); font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 0.25rem;">
+        See all <i data-lucide="chevron-right" style="width: 16px; height: 16px;"></i>
     </a>
-</h3>
-
-{% if trips|length == 0 %}
-<div class="empty-state">
-    <i class="ph ph-paper-plane-tilt" style="font-size: 3rem; color: var(--text-muted); margin-bottom: 1rem;"></i>
-    <h3>No upcoming trips</h3>
-    <p class="text-muted" style="margin-bottom: 1.5rem;">Start exploring the world by planning your next adventure!</p>
-    <a href="{{ url_for('create_trip') }}" class="btn btn-primary">Create Your First Trip</a>
 </div>
-{% else %}
-<div class="upcoming-trips">
-    {% for trip in trips %}
-    <a href="{{ url_for('view_trip', trip_id=trip.id) }}" style="text-decoration: none; color: inherit;">
-        <div class="trip-card">
-            <div class="trip-img"></div>
-            <div class="trip-content">
-                <h4 class="trip-title">{{ trip.name }}</h4>
-                <div class="trip-meta">
-                    <i class="ph ph-calendar"></i> {{ trip.start_date.strftime('%b %d, %Y') }}
-                </div>
-                <div style="margin-top: 0.5rem; color: var(--primary); font-size: 0.9rem; font-weight: 500; display: flex; align-items: center; gap: 0.3rem;">
-                    View Details <i class="ph ph-arrow-right"></i>
-                </div>
+
+<div class="dest-grid">
+    <div class="card dest-card">
+        <div class="dest-img-wrap">
+            <img src="https://images.unsplash.com/photo-1613395877344-13d4a3215430?w=600&auto=format&fit=crop" class="dest-img" alt="Santorini">
+            <div class="dest-rating"><i data-lucide="star" style="width: 14px; height: 14px; fill: var(--accent); color: var(--accent);"></i> 4.9</div>
+        </div>
+        <div class="dest-content">
+            <div class="dest-location"><i data-lucide="map-pin" style="width: 12px; height: 12px;"></i> Greece</div>
+            <h3 style="margin-bottom: 0.5rem; font-size: 1.2rem;">Santorini</h3>
+            <p style="color: var(--muted); font-size: 0.9rem; margin: 0;">White-washed villas and stunning sunsets.</p>
+        </div>
+    </div>
+    
+    <div class="card dest-card">
+        <div class="dest-img-wrap">
+            <img src="https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=600&auto=format&fit=crop" class="dest-img" alt="Kyoto">
+            <div class="dest-rating"><i data-lucide="star" style="width: 14px; height: 14px; fill: var(--accent); color: var(--accent);"></i> 4.8</div>
+        </div>
+        <div class="dest-content">
+            <div class="dest-location"><i data-lucide="map-pin" style="width: 12px; height: 12px;"></i> Japan</div>
+            <h3 style="margin-bottom: 0.5rem; font-size: 1.2rem;">Kyoto</h3>
+            <p style="color: var(--muted); font-size: 0.9rem; margin: 0;">Historic temples and bamboo forests.</p>
+        </div>
+    </div>
+    
+    <div class="card dest-card">
+        <div class="dest-img-wrap">
+            <img src="https://images.unsplash.com/photo-1533682805518-48d1f5b8cb3a?w=600&auto=format&fit=crop" class="dest-img" alt="Amalfi">
+            <div class="dest-rating"><i data-lucide="star" style="width: 14px; height: 14px; fill: var(--accent); color: var(--accent);"></i> 4.9</div>
+        </div>
+        <div class="dest-content">
+            <div class="dest-location"><i data-lucide="map-pin" style="width: 12px; height: 12px;"></i> Italy</div>
+            <h3 style="margin-bottom: 0.5rem; font-size: 1.2rem;">Amalfi Coast</h3>
+            <p style="color: var(--muted); font-size: 0.9rem; margin: 0;">Dramatic cliffs and vibrant coastal towns.</p>
+        </div>
+    </div>
+    
+    <div class="card dest-card">
+        <div class="dest-img-wrap">
+            <img src="https://images.unsplash.com/photo-1544258957-c300840c8fa2?w=600&auto=format&fit=crop" class="dest-img" alt="Banff">
+            <div class="dest-rating"><i data-lucide="star" style="width: 14px; height: 14px; fill: var(--accent); color: var(--accent);"></i> 4.7</div>
+        </div>
+        <div class="dest-content">
+            <div class="dest-location"><i data-lucide="map-pin" style="width: 12px; height: 12px;"></i> Canada</div>
+            <h3 style="margin-bottom: 0.5rem; font-size: 1.2rem;">Banff</h3>
+            <p style="color: var(--muted); font-size: 0.9rem; margin: 0;">Majestic mountains and turquoise lakes.</p>
+        </div>
+    </div>
+</div>
+
+<!-- Previous Trips -->
+<div class="section-header">
+    <div>
+        <h2>Your Upcoming Adventures</h2>
+        <p>Manage and track your travel plans.</p>
+    </div>
+</div>
+
+<div class="trips-grid">
+    {% if trips|length == 0 %}
+    <a href="{{ url_for('create_trip') }}" style="text-decoration: none; color: inherit;">
+        <div class="card" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 3rem; height: 100%; border: 2px dashed #CBD5E1; background: transparent; box-shadow: none;">
+            <div style="width: 60px; height: 60px; border-radius: 50%; background: rgba(37, 99, 235, 0.1); color: var(--primary); display: flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
+                <i data-lucide="map-pin"></i>
             </div>
+            <h3 style="margin-bottom: 0.5rem;">Plan a New Trip</h3>
+            <p style="color: var(--muted); text-align: center; margin: 0; font-size: 0.9rem;">Start your next big adventure today.</p>
         </div>
     </a>
-    {% endfor %}
+    {% else %}
+        {% for trip in trips %}
+        <a href="{{ url_for('view_trip', trip_id=trip.id) }}" style="text-decoration: none; color: inherit;">
+            <div class="card trip-row-card">
+                <img src="https://images.unsplash.com/photo-1499856871958-5b9627545d1a?w=400&auto=format&fit=crop" class="trip-thumb" alt="Trip">
+                <div class="trip-info">
+                    <h3>{{ trip.name }}</h3>
+                    <div class="trip-meta">
+                        <span style="display: flex; align-items: center; gap: 0.25rem;"><i data-lucide="calendar" style="width: 14px; height: 14px;"></i> {{ trip.start_date.strftime('%b %d') }}</span>
+                        <span style="display: flex; align-items: center; gap: 0.25rem;"><i data-lucide="users" style="width: 14px; height: 14px;"></i> 2 Travelers</span>
+                    </div>
+                    <div class="progress-wrap">
+                        <div style="display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 600; margin-bottom: 0.25rem;">
+                            <span>Budget: $2,100</span>
+                            <span style="color: var(--primary);">40% Planned</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 40%;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </a>
+        {% endfor %}
+    {% endif %}
 </div>
-{% endif %}
+
+<!-- Floating CTA -->
+<a href="{{ url_for('create_trip') }}" class="btn btn-primary floating-cta">
+    <i data-lucide="plus"></i> Plan a Trip
+</a>
+
 {% endblock %}

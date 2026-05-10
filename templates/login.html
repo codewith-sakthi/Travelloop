@@ -2,46 +2,150 @@
 
 {% block extra_head %}
 <style>
-    .auth-container {
-        max-width: 400px;
-        margin: 4rem auto;
+    body {
+        margin: 0;
+        padding: 0;
+        overflow-x: hidden;
+    }
+    .container {
+        width: 100%;
+        max-width: 100%;
+        padding: 0;
+    }
+    .auth-layout {
+        min-height: calc(100vh - 80px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        padding: 2rem;
+        margin-top: -80px; /* Offset for navbar */
+        padding-top: 80px;
+    }
+    .auth-bg {
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+    }
+    .auth-bg img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    .auth-blur {
+        position: absolute;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.4);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+    }
+    .auth-card {
+        background: rgba(255, 255, 255, 0.95);
+        width: 100%;
+        max-width: 440px;
+        padding: 2.5rem;
+        position: relative;
+        z-index: 10;
+        animation: fadeInUp 0.5s ease;
+    }
+    .auth-illustration {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        margin: 0 auto 1.5rem auto;
+        border: 4px solid var(--white);
+        box-shadow: var(--shadow-soft);
+        overflow: hidden;
+    }
+    .auth-illustration img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
     }
     .auth-header {
         text-align: center;
         margin-bottom: 2rem;
     }
     .auth-header h2 {
-        font-size: 2rem;
+        font-size: 1.75rem;
         margin-bottom: 0.5rem;
     }
     .auth-header p {
-        color: var(--text-muted);
+        color: var(--muted);
+        font-size: 0.9rem;
+    }
+    .password-toggle {
+        position: absolute;
+        right: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        color: var(--muted);
+        cursor: pointer;
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="auth-container card">
-    <div class="auth-header">
-        <h2>Welcome Back</h2>
-        <p>Log in to access your trips.</p>
+<div class="auth-layout">
+    <div class="auth-bg">
+        <img src="https://images.unsplash.com/photo-1506929562872-bb421503ef21?w=1600&auto=format&fit=crop" alt="Travel Background">
+        <div class="auth-blur"></div>
     </div>
-    <form method="POST" action="{{ url_for('login') }}">
-        <div class="form-group">
-            <label class="form-label" for="email">Email</label>
-            <input type="email" id="email" name="email" class="form-control" required placeholder="you@example.com">
+
+    <div class="glass-card auth-card">
+        <div class="auth-illustration">
+            <img src="https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=200&auto=format&fit=crop" alt="Illustration">
         </div>
-        <div class="form-group">
-            <label class="form-label" for="password">Password</label>
-            <input type="password" id="password" name="password" class="form-control" required placeholder="••••••••">
+        <div class="auth-header">
+            <h2>Welcome Back</h2>
+            <p>Log in to continue planning your trips.</p>
         </div>
-        <div class="form-group" style="text-align: right;">
-            <a href="#" style="color: var(--primary); font-size: 0.9rem; text-decoration: none;">Forgot Password?</a>
+
+        <form method="POST" action="{{ url_for('login') }}">
+            <div class="form-group">
+                <label class="form-label" for="email">Email Address</label>
+                <div class="input-icon-wrapper">
+                    <i data-lucide="mail" class="input-icon"></i>
+                    <input type="email" id="email" name="email" class="form-control with-icon" required placeholder="you@example.com">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                    <label class="form-label" for="password" style="margin-bottom: 0;">Password</label>
+                    <a href="#" style="color: var(--primary); font-size: 0.85rem; text-decoration: none; font-weight: 500;">Forgot Password?</a>
+                </div>
+                <div class="input-icon-wrapper">
+                    <i data-lucide="lock" class="input-icon"></i>
+                    <input type="password" id="password" name="password" class="form-control with-icon" required placeholder="••••••••" style="padding-right: 2.5rem;">
+                    <button type="button" class="password-toggle" onclick="togglePassword()">
+                        <i data-lucide="eye" id="eye-icon" style="width: 20px; height: 20px;"></i>
+                    </button>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-full" style="margin-top: 1rem; padding: 1rem; font-size: 1.1rem;">
+                Log In <i data-lucide="arrow-right"></i>
+            </button>
+        </form>
+
+        <div style="text-align: center; margin-top: 2rem; font-size: 0.9rem; color: var(--muted);">
+            Don't have an account? 
+            <a href="{{ url_for('signup') }}" style="color: var(--primary); text-decoration: none; font-weight: 600;">Create Account</a>
         </div>
-        <button type="submit" class="btn btn-primary w-full">Log In</button>
-    </form>
-    <div class="mt-2 text-center" style="font-size: 0.9rem;">
-        Don't have an account? <a href="{{ url_for('signup') }}" style="color: var(--primary); text-decoration: none; font-weight: 500;">Sign Up</a>
     </div>
 </div>
+
+<script>
+    function togglePassword() {
+        const passInput = document.getElementById('password');
+        if (passInput.type === 'password') {
+            passInput.type = 'text';
+        } else {
+            passInput.type = 'password';
+        }
+    }
+</script>
 {% endblock %}

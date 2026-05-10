@@ -2,172 +2,364 @@
 
 {% block extra_head %}
 <style>
-    .trip-header {
+    .trip-hero {
         position: relative;
-        height: 300px;
+        height: 350px;
         border-radius: var(--radius-xl);
         overflow: hidden;
-        margin-bottom: 2rem;
+        margin-top: 1rem;
+        margin-bottom: 3rem;
+        box-shadow: var(--shadow-float);
     }
-    .trip-header-bg {
+    
+    .trip-bg {
         position: absolute;
         inset: 0;
-        background-image: url('https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=1200&auto=format&fit=crop');
+        background-image: url('https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=1600&auto=format&fit=crop');
         background-size: cover;
         background-position: center;
     }
-    .trip-header-overlay {
+    
+    .trip-overlay {
         position: absolute;
         inset: 0;
-        background: linear-gradient(to top, rgba(0,0,0,0.8), rgba(0,0,0,0.2));
+        background: linear-gradient(to top, rgba(15, 23, 42, 0.9) 0%, rgba(15, 23, 42, 0.3) 100%);
     }
-    .trip-header-content {
+    
+    .trip-content {
         position: absolute;
         bottom: 0;
         left: 0;
+        width: 100%;
         padding: 3rem;
         color: var(--white);
-        width: 100%;
         box-sizing: border-box;
     }
-    .trip-header-content h1 {
-        color: var(--white);
+    
+    .trip-title {
         font-size: 3rem;
         margin-bottom: 0.5rem;
     }
-    .trip-meta-tags {
+    
+    .trip-meta {
         display: flex;
-        gap: 1rem;
-        font-size: 1rem;
+        gap: 2rem;
+        font-size: 1.1rem;
         opacity: 0.9;
     }
-    .meta-tag {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.4rem;
+    
+    .view-layout {
+        display: grid;
+        grid-template-columns: 1fr 350px;
+        gap: 3rem;
+        margin-bottom: 4rem;
     }
-    .tabs {
-        display: flex;
-        gap: 2rem;
-        border-bottom: 1px solid var(--light);
-        margin-bottom: 2rem;
+    
+    @media (max-width: 900px) {
+        .view-layout { grid-template-columns: 1fr; }
     }
-    .tab {
-        padding: 1rem 0;
-        font-weight: 500;
-        color: var(--text-muted);
-        cursor: pointer;
+    
+    /* Timeline styles */
+    .timeline {
         position: relative;
+        padding-left: 2.5rem;
     }
-    .tab.active {
-        color: var(--primary);
-    }
-    .tab.active::after {
+    
+    .timeline::before {
         content: '';
         position: absolute;
-        bottom: -1px;
         left: 0;
-        width: 100%;
-        height: 2px;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: #E2E8F0;
+    }
+    
+    .timeline-day {
+        margin-bottom: 4rem;
+        position: relative;
+    }
+    
+    .day-marker {
+        position: absolute;
+        left: -2.95rem;
+        top: 0;
+        width: 1.5rem;
+        height: 1.5rem;
+        border-radius: 50%;
         background: var(--primary);
+        border: 4px solid var(--white);
+        box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+        z-index: 2;
     }
-    .view-content {
-        display: grid;
-        grid-template-columns: 2fr 1fr;
-        gap: 2rem;
-    }
-    .itinerary-day {
-        background: var(--white);
-        border-radius: var(--radius-lg);
-        box-shadow: var(--shadow-sm);
-        padding: 1.5rem;
-        margin-bottom: 1.5rem;
-        border-left: 4px solid var(--primary);
-    }
+    
     .day-header {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+        color: var(--dark);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .activity-card {
+        background: var(--white);
+        border: 1px solid #E2E8F0;
+        border-radius: var(--radius-lg);
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        display: flex;
+        gap: 1.5rem;
+        align-items: center;
+        transition: var(--transition);
+        position: relative;
+    }
+    
+    .activity-card:hover {
+        box-shadow: var(--shadow-soft);
+        transform: translateX(4px);
+    }
+    
+    .act-time {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--dark);
+        min-width: 80px;
+    }
+    
+    .act-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--white);
+        flex-shrink: 0;
+    }
+    
+    .icon-transport { background: #F59E0B; }
+    .icon-hotel { background: #8B5CF6; }
+    .icon-activity { background: var(--secondary); }
+    
+    .act-content {
+        flex: 1;
+    }
+    
+    .act-content h4 {
+        margin: 0 0 0.25rem 0;
+        font-size: 1.2rem;
+    }
+    
+    .act-meta {
+        color: var(--muted);
+        font-size: 0.9rem;
+    }
+    
+    .expense-badge {
+        background: #F8FAFC;
+        padding: 0.5rem 1rem;
+        border-radius: var(--radius-full);
+        font-weight: 700;
+        color: var(--dark);
+        border: 1px solid #E2E8F0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    /* Budget Tracker Sidebar */
+    .budget-sidebar {
+        background: var(--white);
+        border-radius: var(--radius-xl);
+        box-shadow: var(--shadow-soft);
+        padding: 2rem;
+        border: 1px solid rgba(0,0,0,0.03);
+        height: fit-content;
+        position: sticky;
+        top: 100px;
+    }
+    
+    .budget-total {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    
+    .budget-total h3 {
+        font-size: 2.5rem;
+        color: var(--primary);
+        margin: 0;
+        line-height: 1;
+    }
+    
+    .progress-bar-lg {
+        height: 8px;
+        background: #F1F5F9;
+        border-radius: var(--radius-full);
+        overflow: hidden;
+        margin: 1rem 0;
+    }
+    
+    .progress-fill-lg {
+        height: 100%;
+        background: linear-gradient(90deg, var(--success), #34D399);
+        border-radius: var(--radius-full);
+        width: 65%;
+    }
+    
+    .expense-list {
+        margin-top: 2rem;
+    }
+    
+    .expense-item {
         display: flex;
         justify-content: space-between;
-        margin-bottom: 1rem;
-        padding-bottom: 1rem;
-        border-bottom: 1px solid var(--light);
+        align-items: center;
+        padding: 1rem 0;
+        border-bottom: 1px solid #E2E8F0;
     }
-    .activity-item {
+    
+    .expense-item:last-child {
+        border-bottom: none;
+    }
+    
+    .exp-name {
         display: flex;
-        gap: 1rem;
-        margin-bottom: 1rem;
-    }
-    .activity-time {
-        font-weight: 600;
-        color: var(--text-muted);
-        width: 60px;
-    }
-    .activity-details {
-        flex: 1;
-        background: var(--lighter);
-        padding: 1rem;
-        border-radius: var(--radius-md);
+        align-items: center;
+        gap: 0.75rem;
+        font-weight: 500;
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="trip-header">
-    <div class="trip-header-bg"></div>
-    <div class="trip-header-overlay"></div>
-    <div class="trip-header-content">
-        <h1>{{ trip.name }}</h1>
-        <div class="trip-meta-tags">
-            <span class="meta-tag"><i class="ph ph-calendar"></i> {{ trip.start_date.strftime('%b %d, %Y') }} - {{ trip.end_date.strftime('%b %d, %Y') }}</span>
-            <span class="meta-tag"><i class="ph ph-globe"></i> {{ trip.destination_count }} Destinations</span>
+<div class="animate-fade-in-up">
+    <!-- Hero Header -->
+    <div class="trip-hero">
+        <div class="trip-bg"></div>
+        <div class="trip-overlay"></div>
+        <div class="trip-content">
+            <h1 class="trip-title">{{ trip.name }}</h1>
+            <div class="trip-meta">
+                <span style="display: flex; align-items: center; gap: 0.5rem;"><i data-lucide="calendar"></i> {{ trip.start_date.strftime('%B %d, %Y') }} - {{ trip.end_date.strftime('%B %d, %Y') }}</span>
+                <span style="display: flex; align-items: center; gap: 0.5rem;"><i data-lucide="users"></i> 2 Travelers</span>
+                <span style="display: flex; align-items: center; gap: 0.5rem;"><i data-lucide="map-pin"></i> 3 Destinations</span>
+            </div>
+            
+            <div style="margin-top: 1.5rem; display: flex; gap: 1rem;">
+                <a href="{{ url_for('build_itinerary', trip_id=trip.id) }}" class="btn btn-primary"><i data-lucide="pencil"></i> Edit Itinerary</a>
+                <button class="btn btn-outline" style="border-color: rgba(255,255,255,0.5); color: white;"><i data-lucide="share-2"></i> Share Trip</button>
+            </div>
         </div>
     </div>
-</div>
 
-<div class="tabs">
-    <div class="tab active">Itinerary</div>
-    <div class="tab">Budget</div>
-    <div class="tab">Checklist</div>
-    <div class="tab">Notes</div>
-</div>
-
-<div class="view-content">
-    <div>
-        <div class="itinerary-day">
-            <div class="day-header">
-                <h3 style="margin: 0;">Day 1: Arrival & Exploration</h3>
-                <span style="color: var(--text-muted);">{{ trip.start_date.strftime('%b %d, %Y') }}</span>
-            </div>
-            <div class="activity-item">
-                <div class="activity-time">10:00 AM</div>
-                <div class="activity-details">
-                    <h4 style="margin: 0 0 0.5rem 0;">Arrive at Destination</h4>
-                    <p style="margin: 0; color: var(--text-muted); font-size: 0.9rem;">Check in to hotel and settle down.</p>
+    <div class="view-layout">
+        <!-- Main Timeline -->
+        <div>
+            <h2 style="font-size: 2rem; margin-bottom: 2rem;">Itinerary Timeline</h2>
+            
+            <div class="timeline">
+                <!-- Day 1 -->
+                <div class="timeline-day">
+                    <div class="day-marker"></div>
+                    <div class="day-header">
+                        Day 1 <span style="font-weight: 400; font-size: 1.1rem; color: var(--muted); margin-left: 0.5rem;">— {{ trip.start_date.strftime('%A, %b %d') }}</span>
+                    </div>
+                    
+                    <div class="activity-card">
+                        <div class="act-time">10:00 AM</div>
+                        <div class="act-icon icon-transport"><i data-lucide="plane"></i></div>
+                        <div class="act-content">
+                            <h4>Flight Arrival</h4>
+                            <div class="act-meta"><i data-lucide="map-pin" style="width: 14px; height: 14px; display: inline; vertical-align: middle;"></i> Main Airport Terminal 2</div>
+                        </div>
+                        <div class="expense-badge">
+                            <i data-lucide="wallet" style="width: 16px; height: 16px; color: var(--muted);"></i> $450
+                        </div>
+                    </div>
+                    
+                    <div class="activity-card">
+                        <div class="act-time">01:00 PM</div>
+                        <div class="act-icon icon-hotel"><i data-lucide="bed"></i></div>
+                        <div class="act-content">
+                            <h4>Hotel Check-in</h4>
+                            <div class="act-meta"><i data-lucide="map-pin" style="width: 14px; height: 14px; display: inline; vertical-align: middle;"></i> Grand Plaza Hotel</div>
+                        </div>
+                        <div class="expense-badge">
+                            <i data-lucide="wallet" style="width: 16px; height: 16px; color: var(--muted);"></i> $150
+                        </div>
+                    </div>
+                    
+                    <div class="activity-card">
+                        <div class="act-time">04:00 PM</div>
+                        <div class="act-icon icon-activity"><i data-lucide="camera"></i></div>
+                        <div class="act-content">
+                            <h4>City Sightseeing Tour</h4>
+                            <div class="act-meta"><i data-lucide="clock" style="width: 14px; height: 14px; display: inline; vertical-align: middle;"></i> 3 hours</div>
+                        </div>
+                        <div class="expense-badge">
+                            <i data-lucide="wallet" style="width: 16px; height: 16px; color: var(--muted);"></i> $45
+                        </div>
+                    </div>
                 </div>
-            </div>
-            <div class="activity-item">
-                <div class="activity-time">02:00 PM</div>
-                <div class="activity-details">
-                    <h4 style="margin: 0 0 0.5rem 0;">City Tour</h4>
-                    <p style="margin: 0; color: var(--text-muted); font-size: 0.9rem;">Explore the main attractions.</p>
+                
+                <!-- Day 2 -->
+                <div class="timeline-day">
+                    <div class="day-marker" style="background: var(--muted);"></div>
+                    <div class="day-header" style="color: var(--muted);">
+                        Day 2 <span style="font-weight: 400; font-size: 1.1rem; margin-left: 0.5rem;">— No activities planned yet</span>
+                    </div>
+                    
+                    <a href="{{ url_for('build_itinerary', trip_id=trip.id) }}" class="btn btn-outline" style="border-style: dashed;">
+                        <i data-lucide="plus"></i> Add Activities for Day 2
+                    </a>
                 </div>
             </div>
         </div>
         
-        <div class="text-center" style="margin-top: 2rem;">
-            <a href="{{ url_for('build_itinerary', trip_id=trip.id) }}" class="btn btn-primary">Edit Itinerary</a>
-        </div>
-    </div>
-    
-    <div>
-        <div class="card" style="margin-bottom: 1.5rem;">
-            <h3 style="margin-bottom: 1rem;">Trip Summary</h3>
-            <p style="color: var(--text-muted); font-size: 0.9rem;">{{ trip.description or "No description provided." }}</p>
-        </div>
-        <div class="card">
-            <h3 style="margin-bottom: 1rem;">Actions</h3>
-            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-                <button class="btn btn-outline w-full"><i class="ph ph-share-network" style="margin-right: 0.5rem;"></i> Share Itinerary</button>
-                <button class="btn btn-outline w-full"><i class="ph ph-download-simple" style="margin-right: 0.5rem;"></i> Download PDF</button>
+        <!-- Budget Analytics Sidebar -->
+        <div class="budget-sidebar">
+            <h3 style="margin-bottom: 2rem; display: flex; align-items: center; gap: 0.5rem;">
+                <i data-lucide="pie-chart" style="color: var(--primary);"></i> Expense Analytics
+            </h3>
+            
+            <div class="budget-total">
+                <p style="color: var(--muted); font-size: 0.9rem; text-transform: uppercase; font-weight: 600; margin-bottom: 0.5rem;">Total Spent</p>
+                <h3>$645.00</h3>
+                <p style="color: var(--muted); font-size: 0.9rem; margin-top: 0.5rem;">of $1,000.00 budget</p>
+            </div>
+            
+            <div class="progress-bar-lg">
+                <div class="progress-fill-lg"></div>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 600; color: var(--muted);">
+                <span>65% Used</span>
+                <span style="color: var(--success);">$355 Remaining</span>
+            </div>
+            
+            <div class="expense-list">
+                <div class="expense-item">
+                    <div class="exp-name">
+                        <div style="width: 12px; height: 12px; border-radius: 50%; background: #F59E0B;"></div>
+                        Transport
+                    </div>
+                    <div style="font-weight: 700;">$450</div>
+                </div>
+                <div class="expense-item">
+                    <div class="exp-name">
+                        <div style="width: 12px; height: 12px; border-radius: 50%; background: #8B5CF6;"></div>
+                        Accommodation
+                    </div>
+                    <div style="font-weight: 700;">$150</div>
+                </div>
+                <div class="expense-item">
+                    <div class="exp-name">
+                        <div style="width: 12px; height: 12px; border-radius: 50%; background: var(--secondary);"></div>
+                        Activities
+                    </div>
+                    <div style="font-weight: 700;">$45</div>
+                </div>
             </div>
         </div>
     </div>

@@ -2,48 +2,199 @@
 
 {% block extra_head %}
 <style>
-    .create-trip-container {
-        max-width: 600px;
-        margin: 0 auto;
+    .trip-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 3rem;
+        margin-top: 2rem;
     }
+    @media (max-width: 900px) {
+        .trip-container { grid-template-columns: 1fr; }
+    }
+    
+    .form-section {
+        background: var(--white);
+        padding: 2.5rem;
+        border-radius: var(--radius-xl);
+        box-shadow: var(--shadow-soft);
+        border: 1px solid rgba(0,0,0,0.03);
+    }
+    
     .date-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+    }
+    
+    .ai-suggestions h3 {
+        font-size: 1.5rem;
+        margin-bottom: 1.5rem;
+        color: var(--dark);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .suggestion-card {
         display: flex;
         gap: 1rem;
+        padding: 1rem;
+        border-radius: var(--radius-lg);
+        background: var(--white);
+        border: 1px solid #E2E8F0;
+        margin-bottom: 1rem;
+        cursor: pointer;
+        transition: var(--transition);
+        align-items: center;
     }
-    .date-row .form-group {
+    
+    .suggestion-card:hover {
+        border-color: var(--primary);
+        box-shadow: var(--shadow-soft);
+        transform: translateY(-2px);
+    }
+    
+    .sugg-img {
+        width: 80px;
+        height: 80px;
+        border-radius: var(--radius-md);
+        object-fit: cover;
+    }
+    
+    .sugg-info {
         flex: 1;
+    }
+    
+    .sugg-info h4 {
+        margin: 0 0 0.25rem 0;
+        font-size: 1.1rem;
+    }
+    
+    .sugg-category {
+        font-size: 0.8rem;
+        color: var(--primary);
+        background: rgba(37, 99, 235, 0.1);
+        padding: 0.2rem 0.5rem;
+        border-radius: var(--radius-sm);
+        display: inline-block;
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+    }
+    
+    .sugg-cost {
+        color: var(--muted);
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+    
+    .sugg-save {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: #F1F5F9;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--muted);
+        transition: var(--transition);
+    }
+    
+    .suggestion-card:hover .sugg-save {
+        background: var(--primary);
+        color: var(--white);
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="create-trip-container">
-    <div class="card">
-        <h2 style="margin-bottom: 1.5rem;">Plan a New Trip</h2>
+<div class="trip-container animate-fade-in-up">
+    <!-- Form Section -->
+    <div class="form-section">
+        <h2 style="font-size: 2rem; margin-bottom: 0.5rem;">Plan a New Trip</h2>
+        <p style="color: var(--muted); margin-bottom: 2rem;">Set the foundation for your next great adventure.</p>
+        
         <form method="POST" action="{{ url_for('create_trip') }}">
             <div class="form-group">
-                <label class="form-label" for="name">Trip Name</label>
-                <input type="text" id="name" name="name" class="form-control" required placeholder="E.g., Euro Trip Summer 2026">
+                <label class="form-label" for="name">Trip Title</label>
+                <div class="input-icon-wrapper">
+                    <i data-lucide="pen-line" class="input-icon"></i>
+                    <input type="text" id="name" name="name" class="form-control with-icon" required placeholder="E.g., Euro Trip Summer 2026">
+                </div>
             </div>
+            
+            <div class="form-group">
+                <label class="form-label" for="destination">Select Place</label>
+                <div class="input-icon-wrapper">
+                    <i data-lucide="map-pin" class="input-icon"></i>
+                    <input type="text" id="destination" name="destination" class="form-control with-icon" placeholder="Search cities, countries, or regions...">
+                </div>
+            </div>
+            
             <div class="date-row">
                 <div class="form-group">
                     <label class="form-label" for="start_date">Start Date</label>
-                    <input type="date" id="start_date" name="start_date" class="form-control" required>
+                    <div class="input-icon-wrapper">
+                        <i data-lucide="calendar-days" class="input-icon"></i>
+                        <input type="date" id="start_date" name="start_date" class="form-control with-icon" required>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="end_date">End Date</label>
-                    <input type="date" id="end_date" name="end_date" class="form-control" required>
+                    <div class="input-icon-wrapper">
+                        <i data-lucide="calendar-days" class="input-icon"></i>
+                        <input type="date" id="end_date" name="end_date" class="form-control with-icon" required>
+                    </div>
                 </div>
             </div>
+            
             <div class="form-group">
                 <label class="form-label" for="description">Trip Description (Optional)</label>
                 <textarea id="description" name="description" class="form-control" rows="4" placeholder="What is the vibe of this trip?"></textarea>
             </div>
-            <div class="form-group" style="margin-top: 2rem; display: flex; justify-content: flex-end; gap: 1rem;">
+            
+            <div style="margin-top: 2rem; display: flex; justify-content: flex-end; gap: 1rem;">
                 <a href="{{ url_for('dashboard') }}" class="btn btn-outline">Cancel</a>
-                <button type="submit" class="btn btn-primary">Create Trip</button>
+                <button type="submit" class="btn btn-primary" style="padding: 0.75rem 2rem;">
+                    Create Trip <i data-lucide="arrow-right"></i>
+                </button>
             </div>
         </form>
+    </div>
+
+    <!-- AI Suggestions Section -->
+    <div class="ai-suggestions">
+        <h3><i data-lucide="sparkles" style="color: var(--accent);"></i> AI Destinations</h3>
+        <p style="color: var(--muted); margin-bottom: 1.5rem; font-size: 0.95rem;">Not sure where to go? Here are personalized suggestions based on your profile.</p>
+        
+        <div class="suggestion-card">
+            <img src="https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=400&auto=format&fit=crop" class="sugg-img" alt="Tokyo">
+            <div class="sugg-info">
+                <div class="sugg-category">Cultural</div>
+                <h4>Tokyo, Japan</h4>
+                <div class="sugg-cost"><i data-lucide="wallet" style="width: 14px; height: 14px; display: inline-block; vertical-align: middle;"></i> Est. $2,500/person</div>
+            </div>
+            <div class="sugg-save"><i data-lucide="bookmark" style="width: 18px; height: 18px;"></i></div>
+        </div>
+        
+        <div class="suggestion-card">
+            <img src="https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=400&auto=format&fit=crop" class="sugg-img" alt="Rome">
+            <div class="sugg-info">
+                <div class="sugg-category">Historical</div>
+                <h4>Rome, Italy</h4>
+                <div class="sugg-cost"><i data-lucide="wallet" style="width: 14px; height: 14px; display: inline-block; vertical-align: middle;"></i> Est. $1,800/person</div>
+            </div>
+            <div class="sugg-save"><i data-lucide="bookmark" style="width: 18px; height: 18px;"></i></div>
+        </div>
+        
+        <div class="suggestion-card">
+            <img src="https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=400&auto=format&fit=crop" class="sugg-img" alt="Bali">
+            <div class="sugg-info">
+                <div class="sugg-category">Tropical</div>
+                <h4>Bali, Indonesia</h4>
+                <div class="sugg-cost"><i data-lucide="wallet" style="width: 14px; height: 14px; display: inline-block; vertical-align: middle;"></i> Est. $1,200/person</div>
+            </div>
+            <div class="sugg-save"><i data-lucide="bookmark" style="width: 18px; height: 18px;"></i></div>
+        </div>
     </div>
 </div>
 {% endblock %}
