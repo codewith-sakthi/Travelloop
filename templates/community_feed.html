@@ -158,6 +158,13 @@
                 <button class="btn btn-primary" data-trip-id="{{ post.trip_id }}" onclick="copyTrip(this.dataset.tripId, this)">
                     <i data-lucide="copy"></i> Save as My Trip
                 </button>
+                {% if post.user_id == current_user.id %}
+                <form action="{{ url_for('delete_post', post_id=post.id) }}" method="POST" style="margin:0;">
+                    <button type="submit" class="btn btn-outline" style="padding:0.6rem 1rem; font-size:0.85rem; border-color: rgba(239,68,68,0.2); color: var(--danger); background: rgba(254,226,226,0.7);" onclick="return confirm('Delete this post?');">
+                        <i data-lucide="trash-2"></i> Delete
+                    </button>
+                </form>
+                {% endif %}
             </div>
         </div>
     </div>

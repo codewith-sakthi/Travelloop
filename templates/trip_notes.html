@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+
+{% block extra_head %}
+<style>
+    .notes-layout {
+        display: grid;
+        grid-template-columns: 1fr 320px;
+        gap: 2rem;
+        margin-top: 2rem;
+    }
+    @media (max-width: 900px) {
+        .notes-layout { grid-template-columns: 1fr; }
+    }
+    .notes-panel,
+    .notes-sidebar {
+        background: var(--white);
+        border-radius: var(--radius-xl);
+        box-shadow: var(--shadow-soft);
+        border: 1px solid rgba(0,0,0,0.04);
+        padding: 2rem;
+    }
+    .note-card {
+        background: #F8FAFC;
+        border-radius: var(--radius-lg);
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        border: 1px solid #E2E8F0;
+        transition: var(--transition);
+    }
+    .note-card:hover { box-shadow: var(--shadow-soft); }
+    .note-heading {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        flex-wrap: wrap;
+        margin-bottom: 0.75rem;
+    }
+    .note-heading h3 { margin: 0; font-size: 1.1rem; }
+    .note-meta { color: var(--muted); font-size: 0.9rem; display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center; }
+    .note-body { white-space: pre-wrap; line-height: 1.7; color: var(--dark); margin-bottom: 1rem; }
+    .note-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+    .day-chip { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.25rem 0.65rem; border-radius: 999px; background: rgba(37,99,235,0.1); color: var(--primary); font-size: 0.82rem; font-weight: 700; }
+    .note-form .form-group { margin-bottom: 1rem; }
+    .note-form textarea { min-height: 160px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="animate-fade-in-up">
+    <div style="display:flex; justify-content:space-between; align-items:flex-end; gap:1rem; flex-wrap:wrap; margin-top:1rem;">
+        <div style="flex:1; min-width:220px;">
+            <h1 style="font-size:2.5rem; margin-bottom:0.5rem;">Trip Notes & Journal</h1>
+            <p style="color:var(--muted); margin:0;">Store reminders, check-in details, and day-specific notes without leaving your trip.</p>
+        </div>
+        <a href="{{ url_for('view_trip', trip_id=trip.id) }}" class="btn btn-outline">Back to Trip</a>
+    </div>
+
+    <div class="notes-layout">
+        <div class="notes-panel">
+            <h2 style="font-size:1.75rem; margin-bottom:1rem;">{{ notes|length }} Notes</h2>
+            <form id="noteForm" class="note-form" method="POST" action="{{ url_for('trip_notes', trip_id=trip.id) }}">
+                <input type="hidden" id="noteId" name="note_id" value="">
+
+                <div class="form-group">
+                    <label class="form-label" for="title">Note Title</label>
+                    <input type="text" id="title" name="title" class="form-control" placeholder="E.g. Hotel check-in details" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="day">Trip Day</label>
+                    <select id="day" name="day" class="form-control">
+                        <option value="0">Trip-level Note</option>
+                        {% for d in days[1:] %}
+                        <option value="{{ d }}">Day {{ d }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="body">Note Details</label>
+                    <textarea id="body" name="body" class="form-control" placeholder="Write notes, reminders, or contact info here..." required></textarea>
+                </div>
+
+                <div style="display:flex; gap:1rem; flex-wrap:wrap; justify-content:flex-end;">
+                    <button type="button" class="btn btn-outline" id="cancelEdit" style="display:none;">Cancel Edit</button>
+                    <button type="submit" class="btn btn-primary" id="submitBtn">Save Note</button>
+                </div>
+            </form>
+
+            <div style="margin-top:2rem;">
+                {% if notes %}
+                    {% for note in notes %}
+                    <div class="note-card">
+                        <div class="note-heading">
+                            <h3>{{ note.title }}</h3>
+                            <span class="day-chip">{{ 'Day ' ~ note.day if note.day else 'Trip' }}</span>
+                        </div>
+                        <div class="note-meta">
+                            <span><i data-lucide="clock" style="width:14px;height:14px;"></i> {{ note.updated_at.strftime('%b %d, %Y %I:%M %p') }}</span>
+                            <span><i data-lucide="check-square" style="width:14px;height:14px;"></i> {{ note.user.name }}</span>
+                        </div>
+                        <div class="note-body">{{ note.body }}</div>
+                        <div class="note-actions">
+                            <button type="button" class="btn btn-outline" onclick="startEdit({{ note.id|tojson }}, {{ note.day|default(0) }}, {{ note.title|tojson }}, {{ note.body|tojson }})">
+                                <i data-lucide="edit-3"></i> Edit
+                            </button>
+                            <form method="POST" action="{{ url_for('delete_trip_note', trip_id=trip.id, note_id=note.id) }}" style="display:inline;">
+                                <button type="submit" class="btn btn-outline" style="color: var(--danger); border-color: rgba(239,68,68,0.2); background: rgba(254,226,226,0.6);" onclick="return confirm('Delete this note?');">
+                                    <i data-lucide="trash-2"></i> Delete
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="card" style="padding:2rem; text-align:center; background:#F8FAFC; border:1px solid #E2E8F0;">
+                        <h3 style="margin-bottom:0.5rem; color:var(--dark);">No notes yet</h3>
+                        <p style="color:var(--muted); margin:0;">Start by adding a reminder for your upcoming trip or specific day.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <aside class="notes-sidebar">
+            <h3 style="margin-bottom:1rem;">Why use Trip Notes?</h3>
+            <ul style="padding-left:1.25rem; color: var(--muted); line-height: 1.9;">
+                <li>Save hotel check-in and booking details.</li>
+                <li>Keep local contact numbers handy.</li>
+                <li>Store day-specific reminders in one place.</li>
+                <li>Access notes while building or viewing your itinerary.</li>
+            </ul>
+
+            <div style="margin-top:2rem; background:#F8FAFC; border-radius:var(--radius-lg); padding:1.5rem;">
+                <h4 style="margin-top:0;">Quick tip</h4>
+                <p style="color:var(--muted); margin:0; line-height:1.7;">Use trip-level notes for general details and day notes for quick reminders like check-in times or guided tour schedules.</p>
+            </div>
+        </aside>
+    </div>
+</div>
+
+<script>
+    const noteForm = document.getElementById('noteForm');
+    const noteIdInput = document.getElementById('noteId');
+    const titleInput = document.getElementById('title');
+    const bodyInput = document.getElementById('body');
+    const daySelect = document.getElementById('day');
+    const submitBtn = document.getElementById('submitBtn');
+    const cancelBtn = document.getElementById('cancelEdit');
+
+    function startEdit(id, day, title, body) {
+        noteIdInput.value = id;
+        titleInput.value = title;
+        bodyInput.value = body;
+        daySelect.value = day || 0;
+        noteForm.action = `{{ url_for('trip_notes', trip_id=trip.id) }}/${id}/edit`;
+        submitBtn.textContent = 'Update Note';
+        cancelBtn.style.display = 'inline-flex';
+    }
+
+    cancelBtn.addEventListener('click', () => {
+        noteIdInput.value = '';
+        titleInput.value = '';
+        bodyInput.value = '';
+        daySelect.value = 0;
+        noteForm.action = `{{ url_for('trip_notes', trip_id=trip.id) }}`;
+        submitBtn.textContent = 'Save Note';
+        cancelBtn.style.display = 'none';
+    });
+</script>
+{% endblock %}

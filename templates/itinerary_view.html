@@ -255,6 +255,7 @@
             <div style="margin-top: 1.5rem; display: flex; gap: 1rem; flex-wrap: wrap;">
                 <a href="{{ url_for('build_itinerary', trip_id=trip.id) }}" class="btn btn-primary"><i data-lucide="pencil"></i> Edit Itinerary</a>
                 <a href="{{ url_for('packing_list', trip_id=trip.id) }}" class="btn btn-outline" style="border-color: rgba(255,255,255,0.5); color: white;"><i data-lucide="luggage"></i> Packing List</a>
+                <a href="{{ url_for('trip_notes', trip_id=trip.id) }}" class="btn btn-outline" style="border-color: rgba(255,255,255,0.5); color: white;"><i data-lucide="book-open"></i> Trip Notes</a>
                 <button class="btn btn-outline" style="border-color: rgba(255,255,255,0.5); color: white;"><i data-lucide="share-2"></i> Share Trip</button>
             </div>
         </div>

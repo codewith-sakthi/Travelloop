@@ -55,6 +55,7 @@ class Trip(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     itinerary_items = db.relationship('ItineraryItem', backref='trip', lazy=True, cascade="all, delete-orphan")
     packing_items = db.relationship('PackingItem', backref='trip', lazy=True, cascade="all, delete-orphan")
+    notes = db.relationship('TripNote', backref='trip', lazy=True, cascade="all, delete-orphan")
 
     def __init__(self, name: str, start_date, end_date, user_id: int, description: str = '',
                  cover_photo: str = 'default_trip.jpg', is_public: bool = False, num_travelers: int = 1) -> None:
@@ -188,6 +189,24 @@ class PostComment(db.Model):
         self.post_id = post_id
         self.body = body
 
+class TripNote(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    trip_id = db.Column(db.Integer, db.ForeignKey('trip.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    day = db.Column(db.Integer, nullable=True)
+    title = db.Column(db.String(200), nullable=False)
+    body = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    user = db.relationship('User', backref='trip_notes', lazy=True)
+
+    def __init__(self, trip_id, user_id, title, body, day=None):
+        self.trip_id = trip_id
+        self.user_id = user_id
+        self.title = title
+        self.body = body
+        self.day = day
+
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
@@ -251,6 +270,39 @@ def dashboard():
         
     top_destinations = Place.query.order_by(Place.popularity.desc()).limit(4).all()
     return render_template('dashboard.html', trips=recent_trips, top_destinations=top_destinations)
+
+@app.route('/profile', methods=['GET', 'POST'])
+@login_required
+def profile_settings():
+    if request.method == 'POST':
+        name = request.form.get('name', '').strip()
+        email = request.form.get('email', '').strip().lower()
+        password = request.form.get('password', '')
+        confirm_password = request.form.get('confirm_password', '')
+
+        if not name or not email:
+            flash('Name and email are required.')
+            return redirect(url_for('profile_settings'))
+
+        existing_user = User.query.filter_by(email=email).first()
+        if existing_user and existing_user.id != current_user.id:
+            flash('This email is already in use. Please choose another email.')
+            return redirect(url_for('profile_settings'))
+
+        current_user.name = name
+        current_user.email = email
+
+        if password:
+            if password != confirm_password:
+                flash('Passwords do not match.')
+                return redirect(url_for('profile_settings'))
+            current_user.password = bcrypt.generate_password_hash(password).decode('utf-8')
+
+        db.session.commit()
+        flash('Profile updated successfully.')
+        return redirect(url_for('profile_settings'))
+
+    return render_template('profile_settings.html')
 
 @app.route('/trips/create', methods=['GET', 'POST'])
 @login_required
@@ -407,6 +459,19 @@ def like_post(post_id):
     db.session.commit()
     return jsonify({"status": "success", "liked": liked, "count": PostLike.query.filter_by(post_id=post_id).count()})
 
+@app.route('/community/post/<int:post_id>/delete', methods=['POST'])
+@login_required
+def delete_post(post_id):
+    post = CommunityPost.query.get_or_404(post_id)
+    if post.user_id != current_user.id:
+        flash('You can only delete your own posts.')
+        return redirect(url_for('community_feed'))
+
+    db.session.delete(post)
+    db.session.commit()
+    flash('Post deleted successfully.')
+    return redirect(url_for('community_feed'))
+
 @app.route('/community/post/<int:post_id>/comment', methods=['POST'])
 @login_required
 def add_comment(post_id):
@@ -490,6 +555,72 @@ def packing_list(trip_id):
         categories[cat].append(item)
         
     return render_template('packing_list.html', trip=trip, categories=categories)
+
+@app.route('/trips/<int:trip_id>/notes', methods=['GET', 'POST'])
+@login_required
+def trip_notes(trip_id):
+    trip = Trip.query.get_or_404(trip_id)
+    if trip.user_id != current_user.id:
+        return redirect(url_for('dashboard'))
+
+    num_days = (trip.end_date - trip.start_date).days + 1
+    days = list(range(0, num_days + 1))
+
+    if request.method == 'POST':
+        title = request.form.get('title', '').strip()
+        body = request.form.get('body', '').strip()
+        selected_day = request.form.get('day')
+        day = int(selected_day) if selected_day and selected_day.isdigit() else None
+
+        if not title or not body:
+            flash('Note title and body cannot be empty.')
+            return redirect(url_for('trip_notes', trip_id=trip_id))
+
+        note = TripNote(trip_id=trip.id, user_id=current_user.id, title=title, body=body, day=day if day != 0 else None)
+        db.session.add(note)
+        db.session.commit()
+        flash('Note saved successfully.')
+        return redirect(url_for('trip_notes', trip_id=trip_id))
+
+    notes = TripNote.query.filter_by(trip_id=trip.id).order_by(TripNote.updated_at.desc()).all()
+    return render_template('trip_notes.html', trip=trip, notes=notes, days=days)
+
+@app.route('/trips/<int:trip_id>/notes/<int:note_id>/delete', methods=['POST'])
+@login_required
+def delete_trip_note(trip_id, note_id):
+    note = TripNote.query.get_or_404(note_id)
+    if note.trip_id != trip_id or note.user_id != current_user.id:
+        flash('Invalid request.')
+        return redirect(url_for('dashboard'))
+
+    db.session.delete(note)
+    db.session.commit()
+    flash('Note deleted.')
+    return redirect(url_for('trip_notes', trip_id=trip_id))
+
+@app.route('/trips/<int:trip_id>/notes/<int:note_id>/edit', methods=['POST'])
+@login_required
+def edit_trip_note(trip_id, note_id):
+    note = TripNote.query.get_or_404(note_id)
+    if note.trip_id != trip_id or note.user_id != current_user.id:
+        flash('Invalid request.')
+        return redirect(url_for('dashboard'))
+
+    title = request.form.get('title', '').strip()
+    body = request.form.get('body', '').strip()
+    selected_day = request.form.get('day')
+    day = int(selected_day) if selected_day and selected_day.isdigit() else None
+
+    if not title or not body:
+        flash('Note title and body cannot be empty.')
+        return redirect(url_for('trip_notes', trip_id=trip_id))
+
+    note.title = title
+    note.body = body
+    note.day = day if day != 0 else None
+    db.session.commit()
+    flash('Note updated successfully.')
+    return redirect(url_for('trip_notes', trip_id=trip_id))
 
 @app.route('/api/trips/<int:trip_id>/packing/add', methods=['POST'])
 @login_required

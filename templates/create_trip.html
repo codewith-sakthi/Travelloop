@@ -182,6 +182,10 @@
                     </div>
                 </div>
             </div>
+            <div class="form-group" style="margin-top: 0.5rem;">
+                <div id="durationInfo" style="font-size:0.95rem; font-weight:700; color:var(--primary);">Trip duration: 0 days</div>
+                <div id="durationError" style="font-size:0.85rem; color:var(--danger); display:none;">End date must be the same or after the start date.</div>
+            </div>
 
             <div class="form-group">
                 <label class="form-label" for="description">Trip Description (Optional)</label>
@@ -312,5 +316,51 @@ async function loadSuggestions() {
 }
 
 loadSuggestions();
+
+const startDateInput = document.getElementById('start_date');
+const endDateInput = document.getElementById('end_date');
+const durationInfo = document.getElementById('durationInfo');
+const durationError = document.getElementById('durationError');
+
+function updateTripDuration() {
+    const startValue = startDateInput.value;
+    const endValue = endDateInput.value;
+    if (!startValue) {
+        durationInfo.textContent = 'Trip duration: 0 days';
+        durationError.style.display = 'none';
+        endDateInput.min = '';
+        return;
+    }
+
+    endDateInput.min = startValue;
+
+    if (!endValue) {
+        durationInfo.textContent = 'Select an end date to calculate duration.';
+        durationInfo.style.color = 'var(--muted)';
+        durationError.style.display = 'none';
+        return;
+    }
+
+    const startDate = new Date(startValue);
+    const endDate = new Date(endValue);
+    const dayMs = 1000 * 60 * 60 * 24;
+    const diff = Math.round((endDate - startDate) / dayMs);
+
+    if (diff < 0) {
+        durationError.style.display = 'block';
+        durationInfo.textContent = 'Trip duration: 0 days';
+        durationInfo.style.color = 'var(--danger)';
+        return;
+    }
+
+    durationError.style.display = 'none';
+    const days = diff + 1;
+    durationInfo.textContent = `Trip duration: ${days} day${days === 1 ? '' : 's'}`;
+    durationInfo.style.color = 'var(--primary)';
+}
+
+startDateInput.addEventListener('change', updateTripDuration);
+endDateInput.addEventListener('change', updateTripDuration);
+updateTripDuration();
 </script>
 {% endblock %}
