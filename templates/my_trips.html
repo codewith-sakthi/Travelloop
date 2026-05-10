@@ -175,7 +175,7 @@
 <div class="trip-list animate-fade-in-up" style="animation-delay: 0.2s;">
     {% for trip in trips %}
     <div class="card trip-card-hz">
-        <img src="https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=600&auto=format&fit=crop" class="trip-card-img" alt="Trip">
+        <img src="{{ trip.smart_hero_image }}" class="trip-card-img" alt="Trip">
         
         <div class="trip-details">
             <div class="trip-badges">

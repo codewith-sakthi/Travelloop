@@ -396,15 +396,24 @@
         </div>
     </div>
     
-    <!-- Main Canvas -->
+    <!-- Hero Header -->
+    <div class="trip-hero" style="position: relative; height: 250px; border-radius: var(--radius-xl); overflow: hidden; margin-bottom: 2rem; box-shadow: var(--shadow-float);">
+        <div class="trip-bg" style="position: absolute; inset: 0; background-image: url('{{ trip.smart_hero_image }}'); background-size: cover; background-position: center;"></div>
+        <div class="trip-overlay" style="position: absolute; inset: 0; background: linear-gradient(to top, rgba(15, 23, 42, 0.8) 0%, rgba(15, 23, 42, 0.2) 100%);"></div>
+        <div class="trip-content" style="position: absolute; bottom: 0; left: 0; width: 100%; padding: 2rem; color: var(--white); box-sizing: border-box;">
+            <h1 class="trip-title" style="font-size: 2.5rem; margin-bottom: 0.5rem; color: var(--white);">{{ trip.name }}</h1>
+            <div class="trip-meta" style="display: flex; gap: 2rem; font-size: 1rem; color: rgba(255,255,255,0.9);">
+                <span style="display: flex; align-items: center; gap: 0.5rem;"><i data-lucide="calendar"></i> {{ trip.start_date.strftime('%B %d, %Y') }}</span>
+                <span style="display: flex; align-items: center; gap: 0.5rem;"><i data-lucide="users"></i> {{ trip.num_travelers }} Travelers</span>
+            </div>
+        </div>
+    </div>
+
     <div class="main-canvas">
         <div class="canvas-header">
             <div>
-                <h2 style="font-size: 2rem; margin-bottom: 0.5rem;">{{ trip.name }}</h2>
-                <div style="color: var(--muted); display: flex; gap: 1rem;">
-                    <span style="display: flex; align-items: center; gap: 0.25rem;"><i data-lucide="calendar" style="width: 16px; height: 16px;"></i> {{ trip.start_date.strftime('%b %d') }} - {{ trip.end_date.strftime('%b %d, %Y') }}</span>
-                    <span style="display: flex; align-items: center; gap: 0.25rem;"><i data-lucide="users" style="width: 16px; height: 16px;"></i> {{ trip.num_travelers }} Travelers</span>
-                </div>
+                <h2 style="font-size: 1.5rem; margin-bottom: 0.5rem;">Itinerary Builder</h2>
+                <p style="color: var(--muted); margin: 0;">Drag and drop activities to organize your journey.</p>
             </div>
             
             <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
