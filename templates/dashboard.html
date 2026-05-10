@@ -230,53 +230,25 @@
 </div>
 
 <div class="dest-grid">
-    <div class="card dest-card">
+    {% for dest in top_destinations %}
+    <div class="card dest-card" onclick="window.location.href='/trips/create?dest={{ dest.name|urlencode }}'">
         <div class="dest-img-wrap">
-            <img src="https://images.unsplash.com/photo-1613395877344-13d4a3215430?w=600&auto=format&fit=crop" class="dest-img" alt="Santorini">
-            <div class="dest-rating"><i data-lucide="star" style="width: 14px; height: 14px; fill: var(--accent); color: var(--accent);"></i> 4.9</div>
+            {% set IMGS = {
+                'Temple': 'https://images.unsplash.com/photo-1609766856923-7cba71e3d5e7?w=600&fit=crop',
+                'Fort': 'https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=600&fit=crop',
+                'Beach': 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600&fit=crop',
+                'default': 'https://images.unsplash.com/photo-1524413840807-0c3cb6fa808d?w=600&fit=crop'
+            } %}
+            <img src="{{ dest.image_url if dest.image_url and '1518998053401' not in dest.image_url else (IMGS[dest.category] if dest.category in IMGS else IMGS['default']) }}" class="dest-img" alt="{{ dest.name }}">
+            <div class="dest-rating"><i data-lucide="star" style="width: 14px; height: 14px; fill: var(--accent); color: var(--accent);"></i> {{ dest.popularity }}</div>
         </div>
         <div class="dest-content">
-            <div class="dest-location"><i data-lucide="map-pin" style="width: 12px; height: 12px;"></i> Greece</div>
-            <h3 style="margin-bottom: 0.5rem; font-size: 1.2rem;">Santorini</h3>
-            <p style="color: var(--muted); font-size: 0.9rem; margin: 0;">White-washed villas and stunning sunsets.</p>
+            <div class="dest-location"><i data-lucide="map-pin" style="width: 12px; height: 12px;"></i> {{ dest.country or 'India' }}</div>
+            <h3 style="margin-bottom: 0.5rem; font-size: 1.2rem;">{{ dest.name }}</h3>
+            <p style="color: var(--muted); font-size: 0.9rem; margin: 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">{{ dest.description or 'A beautiful destination to explore.' }}</p>
         </div>
     </div>
-    
-    <div class="card dest-card">
-        <div class="dest-img-wrap">
-            <img src="https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=600&auto=format&fit=crop" class="dest-img" alt="Kyoto">
-            <div class="dest-rating"><i data-lucide="star" style="width: 14px; height: 14px; fill: var(--accent); color: var(--accent);"></i> 4.8</div>
-        </div>
-        <div class="dest-content">
-            <div class="dest-location"><i data-lucide="map-pin" style="width: 12px; height: 12px;"></i> Japan</div>
-            <h3 style="margin-bottom: 0.5rem; font-size: 1.2rem;">Kyoto</h3>
-            <p style="color: var(--muted); font-size: 0.9rem; margin: 0;">Historic temples and bamboo forests.</p>
-        </div>
-    </div>
-    
-    <div class="card dest-card">
-        <div class="dest-img-wrap">
-            <img src="https://images.unsplash.com/photo-1533682805518-48d1f5b8cb3a?w=600&auto=format&fit=crop" class="dest-img" alt="Amalfi">
-            <div class="dest-rating"><i data-lucide="star" style="width: 14px; height: 14px; fill: var(--accent); color: var(--accent);"></i> 4.9</div>
-        </div>
-        <div class="dest-content">
-            <div class="dest-location"><i data-lucide="map-pin" style="width: 12px; height: 12px;"></i> Italy</div>
-            <h3 style="margin-bottom: 0.5rem; font-size: 1.2rem;">Amalfi Coast</h3>
-            <p style="color: var(--muted); font-size: 0.9rem; margin: 0;">Dramatic cliffs and vibrant coastal towns.</p>
-        </div>
-    </div>
-    
-    <div class="card dest-card">
-        <div class="dest-img-wrap">
-            <img src="https://images.unsplash.com/photo-1544258957-c300840c8fa2?w=600&auto=format&fit=crop" class="dest-img" alt="Banff">
-            <div class="dest-rating"><i data-lucide="star" style="width: 14px; height: 14px; fill: var(--accent); color: var(--accent);"></i> 4.7</div>
-        </div>
-        <div class="dest-content">
-            <div class="dest-location"><i data-lucide="map-pin" style="width: 12px; height: 12px;"></i> Canada</div>
-            <h3 style="margin-bottom: 0.5rem; font-size: 1.2rem;">Banff</h3>
-            <p style="color: var(--muted); font-size: 0.9rem; margin: 0;">Majestic mountains and turquoise lakes.</p>
-        </div>
-    </div>
+    {% endfor %}
 </div>
 
 <!-- Previous Trips -->
@@ -307,15 +279,17 @@
                     <h3>{{ trip.name }}</h3>
                     <div class="trip-meta">
                         <span style="display: flex; align-items: center; gap: 0.25rem;"><i data-lucide="calendar" style="width: 14px; height: 14px;"></i> {{ trip.start_date.strftime('%b %d') }}</span>
-                        <span style="display: flex; align-items: center; gap: 0.25rem;"><i data-lucide="users" style="width: 14px; height: 14px;"></i> 2 Travelers</span>
+                        <span style="display: flex; align-items: center; gap: 0.25rem;"><i data-lucide="users" style="width: 14px; height: 14px;"></i> {{ trip.num_travelers }} Travelers</span>
+                        <span style="display: flex; align-items: center; gap: 0.25rem;"><i data-lucide="map-pin" style="width: 14px; height: 14px;"></i> {{ trip.destination_count }} Stops</span>
                     </div>
                     <div class="progress-wrap">
                         <div style="display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 600; margin-bottom: 0.25rem;">
-                            <span>Budget: $2,100</span>
-                            <span style="color: var(--primary);">40% Planned</span>
+                            <span>Est: INR {{ "{:,.0f}".format(trip.total_cost) }}</span>
+                            <span style="color: var(--primary);">{% if trip.itinerary_items|length > 0 %}80%{% else %}10%{% endif %} Planned</span>
                         </div>
                         <div class="progress-bar">
-                            <div class="progress-fill" style="width: 40%;"></div>
+                            {% set prog = '80%' if trip.itinerary_items|length > 0 else '10%' %}
+                            <div class="progress-fill" style="width: {{ prog }};"></div>
                         </div>
                     </div>
                 </div>

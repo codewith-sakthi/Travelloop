@@ -4,59 +4,135 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Traveloop - Premium Travel Planning</title>
-    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- Main CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* ── Global Nav Search ── */
+        .nav-search-wrapper { position: relative; flex: 1; max-width: 400px; margin: 0 2rem; }
+        #globalSearch { border-radius: var(--radius-full) !important; background: #F1F5F9 !important; }
+        #globalDropdown {
+            display: none; position: absolute; top: calc(100% + 6px); left: 0; right: 0;
+            background: #fff; border: 1px solid #E2E8F0; border-radius: 14px;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.12); z-index: 9999;
+            max-height: 280px; overflow-y: auto;
+        }
+        #globalDropdown.open { display: block; }
+        .g-drop-item {
+            display: flex; align-items: center; gap: 0.75rem;
+            padding: 0.65rem 1rem; cursor: pointer;
+            border-bottom: 1px solid #F1F5F9; transition: background 0.15s;
+        }
+        .g-drop-item:last-child { border-bottom: none; }
+        .g-drop-item:hover { background: #F8FAFC; }
+        .g-drop-item img { width: 38px; height: 38px; border-radius: 8px; object-fit: cover; }
+        .g-drop-name { font-weight: 600; font-size: 0.88rem; }
+        .g-drop-sub { font-size: 0.76rem; color: var(--muted); }
+
+        /* ── Profile dropdown ── */
+        .profile-wrapper { position: relative; }
+        .profile-btn {
+            width: 36px; height: 36px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), #8B5CF6);
+            display: flex; align-items: center; justify-content: center;
+            color: #fff; cursor: pointer; font-weight: 700; font-size: 0.85rem;
+            border: none; transition: box-shadow 0.2s;
+        }
+        .profile-btn:hover { box-shadow: 0 4px 12px rgba(37,99,235,0.4); }
+        .profile-menu {
+            display: none; position: absolute; top: calc(100% + 10px); right: 0;
+            background: #fff; border: 1px solid #E2E8F0; border-radius: 14px;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.12); z-index: 9999; min-width: 180px;
+            padding: 0.5rem 0;
+        }
+        .profile-menu.open { display: block; }
+        .pm-item {
+            display: flex; align-items: center; gap: 0.6rem;
+            padding: 0.65rem 1.1rem; color: var(--dark);
+            font-size: 0.9rem; font-weight: 500; cursor: pointer;
+            text-decoration: none; transition: background 0.15s;
+        }
+        .pm-item:hover { background: #F8FAFC; }
+        .pm-divider { height: 1px; background: #E2E8F0; margin: 0.3rem 0; }
+        .pm-item.danger { color: var(--danger); }
+    </style>
     {% block extra_head %}{% endblock %}
 </head>
 <body>
 
     <nav class="navbar">
         <a href="{{ url_for('index') }}" class="nav-brand">
-            <i data-lucide="plane" style="color: var(--primary);"></i> Traveloop
+            <i data-lucide="plane" style="color: var(--primary);"></i> Travelloop
         </a>
-        
-        <!-- Smart Search Bar (Mockup for UI) -->
-        <div class="nav-search hidden-mobile" style="flex: 1; max-width: 400px; margin: 0 2rem; position: relative;">
-            <i data-lucide="search" class="input-icon"></i>
-            <input type="text" class="form-control with-icon" style="border-radius: var(--radius-full); background: #F1F5F9;" placeholder="Search destinations, trips, users...">
+
+        {% if current_user.is_authenticated %}
+        <!-- Global Search with Autocomplete -->
+        <div class="nav-search-wrapper hidden-mobile">
+            <div class="input-icon-wrapper">
+                <i data-lucide="search" class="input-icon"></i>
+                <input type="text" id="globalSearch" class="form-control with-icon"
+                       placeholder="Search destinations, trips…" autocomplete="off">
+            </div>
+            <div id="globalDropdown"></div>
         </div>
+        {% endif %}
 
         <div class="nav-links">
             {% if current_user.is_authenticated %}
-                <a href="{{ url_for('dashboard') }}" class="nav-link">Dashboard</a>
-                <a href="{{ url_for('my_trips') }}" class="nav-link">My Trips</a>
+                <a href="{{ url_for('dashboard') }}" class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}">Dashboard</a>
+                <a href="{{ url_for('ai_planner') }}" class="nav-link {% if request.endpoint == 'ai_planner' %}active{% endif %}">AI Planner</a>
+                <a href="{{ url_for('my_trips') }}"  class="nav-link {% if request.endpoint == 'my_trips' %}active{% endif %}">My Trips</a>
                 <a href="{{ url_for('create_trip') }}" class="btn btn-primary">
-                    <i data-lucide="plus" style="width: 18px; height: 18px;"></i> Plan Trip
+                    <i data-lucide="plus" style="width:18px;height:18px;"></i> Plan Trip
                 </a>
-                
+
                 <!-- Notification Bell -->
-                <div style="position: relative; cursor: pointer; padding: 0.5rem; color: var(--muted);">
+                <div style="position:relative;cursor:pointer;padding:0.5rem;color:var(--muted);">
                     <i data-lucide="bell"></i>
-                    <span style="position: absolute; top: 8px; right: 8px; width: 8px; height: 8px; background: var(--danger); border-radius: 50%; border: 2px solid var(--white);"></span>
+                    <span style="position:absolute;top:8px;right:8px;width:8px;height:8px;background:var(--danger);border-radius:50%;border:2px solid var(--white);"></span>
                 </div>
-                
-                <!-- Profile Avatar -->
-                <a href="{{ url_for('logout') }}" style="width: 36px; height: 36px; border-radius: 50%; background: #E2E8F0; display: flex; align-items: center; justify-content: center; color: var(--muted);">
-                    <i data-lucide="user"></i>
-                </a>
+
+                <!-- Profile with dropdown -->
+                <div class="profile-wrapper">
+                    <button class="profile-btn" onclick="toggleProfileMenu(event)" title="{{ current_user.name }}">
+                        {{ current_user.name[0].upper() }}
+                    </button>
+                    <div class="profile-menu" id="profileMenu">
+                        <div class="pm-item" style="flex-direction:column;align-items:flex-start;gap:2px;padding-bottom:0.8rem;">
+                            <span style="font-weight:700;">{{ current_user.name }}</span>
+                            <span style="font-size:0.78rem;color:var(--muted);">{{ current_user.email }}</span>
+                        </div>
+                        <div class="pm-divider"></div>
+                        <a href="{{ url_for('dashboard') }}" class="pm-item">
+                            <i data-lucide="layout-dashboard" style="width:16px;height:16px;"></i> Dashboard
+                        </a>
+                        <a href="{{ url_for('my_trips') }}" class="pm-item">
+                            <i data-lucide="map" style="width:16px;height:16px;"></i> My Trips
+                        </a>
+                        <a href="{{ url_for('create_trip') }}" class="pm-item">
+                            <i data-lucide="plus-circle" style="width:16px;height:16px;"></i> New Trip
+                        </a>
+                        <div class="pm-divider"></div>
+                        <a href="{{ url_for('logout') }}" class="pm-item danger">
+                            <i data-lucide="log-out" style="width:16px;height:16px;"></i> Log Out
+                        </a>
+                    </div>
+                </div>
+
             {% else %}
-                <a href="{{ url_for('login') }}" class="nav-link">Log In</a>
+                <a href="{{ url_for('login') }}"  class="nav-link">Log In</a>
                 <a href="{{ url_for('signup') }}" class="btn btn-primary">Create Account</a>
             {% endif %}
         </div>
     </nav>
 
-    <div class="flash-messages" style="position: fixed; top: 80px; right: 2rem; z-index: 9999;">
+    <div class="flash-messages" style="position:fixed;top:80px;right:2rem;z-index:9999;">
         {% with messages = get_flashed_messages() %}
             {% if messages %}
                 {% for message in messages %}
-                    <div class="glass-card" style="padding: 1rem 1.5rem; margin-bottom: 0.5rem; border-left: 4px solid var(--primary); animation: fadeInUp 0.3s ease;">{{ message }}</div>
+                    <div class="glass-card" style="padding:1rem 1.5rem;margin-bottom:0.5rem;border-left:4px solid var(--primary);animation:fadeInUp 0.3s ease;">{{ message }}</div>
                 {% endfor %}
             {% endif %}
         {% endwith %}
@@ -68,8 +144,50 @@
 
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     <script>
-        // Initialize Lucide Icons
         lucide.createIcons();
+
+        // ── Profile menu toggle ──
+        function toggleProfileMenu(e) {
+            e.stopPropagation();
+            document.getElementById('profileMenu').classList.toggle('open');
+        }
+        document.addEventListener('click', () => {
+            const m = document.getElementById('profileMenu');
+            if (m) m.classList.remove('open');
+        });
+
+        // ── Global nav search ──
+        const gs = document.getElementById('globalSearch');
+        const gd = document.getElementById('globalDropdown');
+        if (gs) {
+            let t;
+            const IMGS = {
+                default: 'https://images.unsplash.com/photo-1524413840807-0c3cb6fa808d?w=80&fit=crop',
+                Temple:  'https://images.unsplash.com/photo-1609766856923-7cba71e3d5e7?w=80&fit=crop',
+                Beach:   'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=80&fit=crop',
+                Fort:    'https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=80&fit=crop',
+            };
+            gs.addEventListener('input', () => {
+                clearTimeout(t);
+                const q = gs.value.trim();
+                if (q.length < 2) { gd.classList.remove('open'); return; }
+                t = setTimeout(async () => {
+                    const res = await fetch(`/api/search_places?q=${encodeURIComponent(q)}&limit=6`);
+                    const places = await res.json();
+                    if (!places.length) { gd.classList.remove('open'); return; }
+                    gd.innerHTML = places.map(p => `
+                        <div class="g-drop-item" onclick="window.location.href='/trips/create?dest=${encodeURIComponent(p.name)}'">
+                            <img src="${p.image_url && !p.image_url.includes('1518998053401') ? p.image_url : (IMGS[p.category] || IMGS.default)}" alt="">
+                            <div>
+                                <div class="g-drop-name">${p.name}</div>
+                                <div class="g-drop-sub">${p.country || ''} &bull; ⭐ ${p.popularity || ''}</div>
+                            </div>
+                        </div>`).join('');
+                    gd.classList.add('open');
+                }, 280);
+            });
+            gs.addEventListener('blur', () => setTimeout(() => gd.classList.remove('open'), 200));
+        }
     </script>
 </body>
 </html>

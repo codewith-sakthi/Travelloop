@@ -1,0 +1,279 @@
+{% extends "base.html" %}
+
+{% block extra_head %}
+<style>
+    .ai-hero {
+        background: linear-gradient(135deg, #6366F1 0%, #A855F7 100%);
+        padding: 4rem 2rem;
+        border-radius: var(--radius-2xl);
+        color: white;
+        text-align: center;
+        margin-bottom: 3rem;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .ai-hero::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: url('https://www.transparenttextures.com/patterns/cubes.png');
+        opacity: 0.1;
+    }
+
+    .form-card {
+        background: var(--white);
+        padding: 2.5rem;
+        border-radius: var(--radius-xl);
+        box-shadow: var(--shadow-lg);
+        margin-top: -5rem;
+        position: relative;
+        z-index: 10;
+        max-width: 800px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .interests-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .interest-chip {
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        border: 1px solid #E2E8F0;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: var(--transition);
+        text-align: center;
+        background: white;
+    }
+
+    .interest-chip.active {
+        background: var(--primary);
+        color: white;
+        border-color: var(--primary);
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    }
+
+    .results-section {
+        margin-top: 4rem;
+        display: none;
+    }
+
+    .day-card {
+        background: var(--white);
+        border-radius: var(--radius-xl);
+        padding: 2rem;
+        margin-bottom: 2rem;
+        border: 1px solid rgba(0,0,0,0.05);
+    }
+
+    .time-slot {
+        display: flex;
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .slot-label {
+        font-weight: 700;
+        color: var(--primary);
+        width: 80px;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        margin-top: 0.25rem;
+    }
+
+    .slot-content {
+        flex: 1;
+        padding-left: 1.5rem;
+        border-left: 2px solid #F1F5F9;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="ai-hero">
+    <h1 style="font-size: 3rem; margin-bottom: 1rem;">Intelligent Travel Planner</h1>
+    <p style="font-size: 1.25rem; opacity: 0.9;">Powered by AI to craft your perfect journey</p>
+</div>
+
+<div class="form-card">
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+        <div class="form-group">
+            <label>Destination</label>
+            <input type="text" id="destInput" placeholder="e.g. Jaipur, Manali, Ooty" class="form-control" style="width: 100%;">
+        </div>
+        <div class="form-group">
+            <label>Trip Duration (Days)</label>
+            <input type="number" id="daysInput" value="3" min="1" max="10" class="form-control" style="width: 100%;">
+        </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 1.5rem;">
+        <div class="form-group">
+            <label>Travel Type</label>
+            <select id="typeInput" class="form-control" style="width: 100%;">
+                <option value="solo">Solo Traveler</option>
+                <option value="couple">Couple</option>
+                <option value="family">Family</option>
+                <option value="friends">Friends</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Budget</label>
+            <select id="budgetInput" class="form-control" style="width: 100%;">
+                <option value="low">Budget Friendly</option>
+                <option value="medium" selected>Balanced</option>
+                <option value="high">Luxury</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="form-group" style="margin-top: 1.5rem;">
+        <label>What are you interested in?</label>
+        <div class="interests-grid" id="interestsGrid">
+            {% for interest in ['Nature', 'Adventure', 'Food', 'History', 'Religious', 'Shopping', 'Relaxation', 'Photography', 'Nightlife'] %}
+            <div class="interest-chip" onclick="this.classList.toggle('active')">{{ interest }}</div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <button class="btn btn-primary" style="width: 100%; margin-top: 2rem; padding: 1rem;" onclick="generatePlan()" id="genBtn">
+        <i data-lucide="sparkles"></i> Generate AI Itinerary
+    </button>
+</div>
+
+<div class="results-section animate-fade-in-up" id="results">
+    <div style="text-align: center; margin-bottom: 3rem;">
+        <h2 id="resTitle" style="font-size: 2rem;">Your Personalized Plan</h2>
+        <p id="resSub" style="color: var(--muted);"></p>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem;">
+        <!-- Itinerary Flow -->
+        <div id="itineraryContent">
+            <!-- Days will be injected here -->
+        </div>
+
+        <!-- Sidebar Recommendations -->
+        <div>
+            <div class="category-card" style="margin-bottom: 2rem; background: #F8FAFC;">
+                <h3 style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <i data-lucide="utensils" style="color: #F59E0B;"></i> Local Flavors
+                </h3>
+                <ul id="foodRecs" style="list-style: none; padding: 0;">
+                    <!-- Food injected here -->
+                </ul>
+            </div>
+
+            <div class="category-card" style="background: #F8FAFC;">
+                <h3 style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <i data-lucide="gem" style="color: #8B5CF6;"></i> Hidden Gems
+                </h3>
+                <ul id="gemRecs" style="list-style: none; padding: 0;">
+                    <!-- Gems injected here -->
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    async function generatePlan() {
+        const dest = document.getElementById('destInput').value;
+        if (!dest) { alert('Please enter a destination'); return; }
+
+        const btn = document.getElementById('genBtn');
+        btn.innerHTML = '<i data-lucide="loader" class="spin"></i> Consulting AI...';
+        btn.disabled = true;
+        lucide.createIcons();
+
+        const interests = [];
+        document.querySelectorAll('.interest-chip.active').forEach(c => interests.push(c.innerText));
+
+        try {
+            const res = await fetch('/api/ai_smart_plan', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    destination: dest,
+                    trip_days: document.getElementById('daysInput').value,
+                    travel_type: document.getElementById('typeInput').value,
+                    interests: interests,
+                    budget: document.getElementById('budgetInput').value
+                })
+            });
+
+            const data = await res.json();
+            displayResults(data);
+        } catch (e) {
+            console.error(e);
+            alert('AI Assistant is temporarily busy. Please try again.');
+        } finally {
+            btn.innerHTML = '<i data-lucide="sparkles"></i> Generate AI Itinerary';
+            btn.disabled = false;
+            lucide.createIcons();
+        }
+    }
+
+    function displayResults(data) {
+        const results = document.getElementById('results');
+        results.style.display = 'block';
+        
+        document.getElementById('resTitle').innerText = `Your ${data.destination} Adventure`;
+        document.getElementById('resSub').innerText = `${data.trip_summary.days} Days • ${data.trip_summary.travel_type} • ${data.trip_summary.budget} Budget`;
+
+        // Itinerary
+        const itin = document.getElementById('itineraryContent');
+        itin.innerHTML = '';
+        
+        Object.keys(data.smart_itinerary_flow).forEach(dayKey => {
+            const dayNum = dayKey.split('_')[1];
+            const dayData = data.smart_itinerary_flow[dayKey];
+            
+            const html = `
+                <div class="day-card">
+                    <h3 style="margin-bottom: 2rem; color: var(--dark);">Day ${dayNum}</h3>
+                    <div class="time-slot">
+                        <div class="slot-label">Morning</div>
+                        <div class="slot-content">
+                            <h4 style="color: var(--primary);">${dayData.morning[0]}</h4>
+                            <p style="font-size: 0.9rem; color: var(--muted); margin-top: 0.5rem;">Fresh start with sightseeing and exploration.</p>
+                        </div>
+                    </div>
+                    <div class="time-slot">
+                        <div class="slot-label">Afternoon</div>
+                        <div class="slot-content">
+                            <h4 style="color: var(--primary);">${dayData.afternoon[0]}</h4>
+                            <p style="font-size: 0.9rem; color: var(--muted); margin-top: 0.5rem;">Deeper dive into local culture and landmarks.</p>
+                        </div>
+                    </div>
+                    <div class="time-slot" style="margin-bottom: 0;">
+                        <div class="slot-label">Evening</div>
+                        <div class="slot-content">
+                            <h4 style="color: var(--primary);">${dayData.evening[0]}</h4>
+                            <p style="font-size: 0.9rem; color: var(--muted); margin-top: 0.5rem;">Relaxation, dinner, and evening vibes.</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            itin.insertAdjacentHTML('beforeend', html);
+        });
+
+        // Food
+        const foodList = document.getElementById('foodRecs');
+        foodList.innerHTML = data.food_recommendations.map(f => `<li style="padding: 0.75rem 0; border-bottom: 1px solid #E2E8F0; font-size: 0.9rem;"><i data-lucide="check" style="width: 14px; height: 14px; color: #10B981; margin-right: 0.5rem;"></i> ${f}</li>`).join('');
+
+        // Gems
+        const gemList = document.getElementById('gemRecs');
+        gemList.innerHTML = data.hidden_gems.map(g => `<li style="padding: 0.75rem 0; border-bottom: 1px solid #E2E8F0; font-size: 0.9rem;"><i data-lucide="star" style="width: 14px; height: 14px; color: #8B5CF6; margin-right: 0.5rem;"></i> ${g}</li>`).join('');
+
+        lucide.createIcons();
+        results.scrollIntoView({ behavior: 'smooth' });
+    }
+</script>
+{% endblock %}

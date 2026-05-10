@@ -205,7 +205,6 @@
         height: 100%;
         background: linear-gradient(90deg, var(--success), #34D399);
         border-radius: var(--radius-full);
-        width: 65%;
     }
     
     .expense-list {
@@ -230,6 +229,11 @@
         gap: 0.75rem;
         font-weight: 500;
     }
+
+    .cat-dot { width: 12px; height: 12px; border-radius: 50%; }
+    .cat-dot.accommodation { background: #8B5CF6; }
+    .cat-dot.food { background: #10B981; }
+    .cat-dot.activities { background: var(--secondary); }
 </style>
 {% endblock %}
 
@@ -243,12 +247,13 @@
             <h1 class="trip-title">{{ trip.name }}</h1>
             <div class="trip-meta">
                 <span style="display: flex; align-items: center; gap: 0.5rem;"><i data-lucide="calendar"></i> {{ trip.start_date.strftime('%B %d, %Y') }} - {{ trip.end_date.strftime('%B %d, %Y') }}</span>
-                <span style="display: flex; align-items: center; gap: 0.5rem;"><i data-lucide="users"></i> 2 Travelers</span>
-                <span style="display: flex; align-items: center; gap: 0.5rem;"><i data-lucide="map-pin"></i> 3 Destinations</span>
+                <span style="display: flex; align-items: center; gap: 0.5rem;"><i data-lucide="users"></i> {{ trip.num_travelers }} Travelers</span>
+                <span style="display: flex; align-items: center; gap: 0.5rem;"><i data-lucide="map-pin"></i> {{ trip.destination_count }} Destinations</span>
             </div>
             
-            <div style="margin-top: 1.5rem; display: flex; gap: 1rem;">
+            <div style="margin-top: 1.5rem; display: flex; gap: 1rem; flex-wrap: wrap;">
                 <a href="{{ url_for('build_itinerary', trip_id=trip.id) }}" class="btn btn-primary"><i data-lucide="pencil"></i> Edit Itinerary</a>
+                <a href="{{ url_for('packing_list', trip_id=trip.id) }}" class="btn btn-outline" style="border-color: rgba(255,255,255,0.5); color: white;"><i data-lucide="suitcase"></i> Packing List</a>
                 <button class="btn btn-outline" style="border-color: rgba(255,255,255,0.5); color: white;"><i data-lucide="share-2"></i> Share Trip</button>
             </div>
         </div>
@@ -260,61 +265,50 @@
             <h2 style="font-size: 2rem; margin-bottom: 2rem;">Itinerary Timeline</h2>
             
             <div class="timeline">
-                <!-- Day 1 -->
+                {% for day_num in sorted_days %}
                 <div class="timeline-day">
                     <div class="day-marker"></div>
                     <div class="day-header">
-                        Day 1 <span style="font-weight: 400; font-size: 1.1rem; color: var(--muted); margin-left: 0.5rem;">— {{ trip.start_date.strftime('%A, %b %d') }}</span>
+                        Day {{ day_num }} 
+                        {% set current_date = trip.start_date + timedelta(days=day_num-1) %}
+                        <span style="font-weight: 400; font-size: 1.1rem; color: var(--muted); margin-left: 0.5rem;">— {{ current_date.strftime('%A, %b %d') }}</span>
                     </div>
                     
+                    {% for item in days[day_num] %}
                     <div class="activity-card">
-                        <div class="act-time">10:00 AM</div>
-                        <div class="act-icon icon-transport"><i data-lucide="plane"></i></div>
+                        <div class="act-time">{{ item.time or 'Flexible' }}</div>
+                        {% set cat = item.category.lower() %}
+                        <div class="act-icon {% if 'hotel' in cat %}icon-hotel{% elif 'transport' in cat %}icon-transport{% else %}icon-activity{% endif %}">
+                            <i data-lucide="{% if 'hotel' in cat %}bed{% elif 'transport' in cat %}plane{% elif 'food' in cat %}utensils{% else %}camera{% endif %}"></i>
+                        </div>
                         <div class="act-content">
-                            <h4>Flight Arrival</h4>
-                            <div class="act-meta"><i data-lucide="map-pin" style="width: 14px; height: 14px; display: inline; vertical-align: middle;"></i> Main Airport Terminal 2</div>
+                            <h4>{{ item.name }}</h4>
+                            {% if item.description %}
+                            <div class="act-meta">{{ item.description }}</div>
+                            {% endif %}
                         </div>
+                        {% if item.cost > 0 %}
                         <div class="expense-badge">
-                            <i data-lucide="wallet" style="width: 16px; height: 16px; color: var(--muted);"></i> $450
+                            <i data-lucide="wallet" style="width: 16px; height: 16px; color: var(--muted);"></i> INR {{ item.cost }}
                         </div>
+                        {% endif %}
                     </div>
-                    
-                    <div class="activity-card">
-                        <div class="act-time">01:00 PM</div>
-                        <div class="act-icon icon-hotel"><i data-lucide="bed"></i></div>
-                        <div class="act-content">
-                            <h4>Hotel Check-in</h4>
-                            <div class="act-meta"><i data-lucide="map-pin" style="width: 14px; height: 14px; display: inline; vertical-align: middle;"></i> Grand Plaza Hotel</div>
-                        </div>
-                        <div class="expense-badge">
-                            <i data-lucide="wallet" style="width: 16px; height: 16px; color: var(--muted);"></i> $150
-                        </div>
-                    </div>
-                    
-                    <div class="activity-card">
-                        <div class="act-time">04:00 PM</div>
-                        <div class="act-icon icon-activity"><i data-lucide="camera"></i></div>
-                        <div class="act-content">
-                            <h4>City Sightseeing Tour</h4>
-                            <div class="act-meta"><i data-lucide="clock" style="width: 14px; height: 14px; display: inline; vertical-align: middle;"></i> 3 hours</div>
-                        </div>
-                        <div class="expense-badge">
-                            <i data-lucide="wallet" style="width: 16px; height: 16px; color: var(--muted);"></i> $45
-                        </div>
-                    </div>
+                    {% endfor %}
                 </div>
-                
-                <!-- Day 2 -->
+                {% endfor %}
+
+                {% if not sorted_days %}
                 <div class="timeline-day">
                     <div class="day-marker" style="background: var(--muted);"></div>
                     <div class="day-header" style="color: var(--muted);">
-                        Day 2 <span style="font-weight: 400; font-size: 1.1rem; margin-left: 0.5rem;">— No activities planned yet</span>
+                        No activities planned yet
                     </div>
                     
                     <a href="{{ url_for('build_itinerary', trip_id=trip.id) }}" class="btn btn-outline" style="border-style: dashed;">
-                        <i data-lucide="plus"></i> Add Activities for Day 2
+                        <i data-lucide="plus"></i> Add Activities
                     </a>
                 </div>
+                {% endif %}
             </div>
         </div>
         
@@ -325,41 +319,21 @@
             </h3>
             
             <div class="budget-total">
-                <p style="color: var(--muted); font-size: 0.9rem; text-transform: uppercase; font-weight: 600; margin-bottom: 0.5rem;">Total Spent</p>
-                <h3>$645.00</h3>
-                <p style="color: var(--muted); font-size: 0.9rem; margin-top: 0.5rem;">of $1,000.00 budget</p>
-            </div>
-            
-            <div class="progress-bar-lg">
-                <div class="progress-fill-lg"></div>
-            </div>
-            <div style="display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 600; color: var(--muted);">
-                <span>65% Used</span>
-                <span style="color: var(--success);">$355 Remaining</span>
+                <p style="color: var(--muted); font-size: 0.9rem; text-transform: uppercase; font-weight: 600; margin-bottom: 0.5rem;">Total Estimated Cost</p>
+                <h3>INR {{ "{:,.2f}".format(total_spent) }}</h3>
+                <p style="color: var(--muted); font-size: 0.9rem; margin-top: 0.5rem;">for {{ trip.num_travelers }} travelers</p>
             </div>
             
             <div class="expense-list">
+                {% for cat, amount in category_totals.items() %}
                 <div class="expense-item">
                     <div class="exp-name">
-                        <div style="width: 12px; height: 12px; border-radius: 50%; background: #F59E0B;"></div>
-                        Transport
+                        <div class="cat-dot {{ cat.lower() }}"></div>
+                        {{ cat }}
                     </div>
-                    <div style="font-weight: 700;">$450</div>
+                    <div style="font-weight: 700;">INR {{ "{:,.0f}".format(amount) }}</div>
                 </div>
-                <div class="expense-item">
-                    <div class="exp-name">
-                        <div style="width: 12px; height: 12px; border-radius: 50%; background: #8B5CF6;"></div>
-                        Accommodation
-                    </div>
-                    <div style="font-weight: 700;">$150</div>
-                </div>
-                <div class="expense-item">
-                    <div class="exp-name">
-                        <div style="width: 12px; height: 12px; border-radius: 50%; background: var(--secondary);"></div>
-                        Activities
-                    </div>
-                    <div style="font-weight: 700;">$45</div>
-                </div>
+                {% endfor %}
             </div>
         </div>
     </div>

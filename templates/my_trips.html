@@ -179,15 +179,15 @@
         
         <div class="trip-details">
             <div class="trip-badges">
-                <span class="badge badge-status"><i data-lucide="clock" style="width: 12px; height: 12px;"></i> Upcoming</span>
-                <span class="badge badge-budget"><i data-lucide="wallet" style="width: 12px; height: 12px;"></i> Est. $2,100</span>
+                <span class="badge badge-status"><i data-lucide="clock" style="width: 12px; height: 12px;"></i> {% if trip.start_date > date.today() %}Upcoming{% elif trip.end_date < date.today() %}Completed{% else %}Ongoing{% endif %}</span>
+                <span class="badge badge-budget"><i data-lucide="wallet" style="width: 12px; height: 12px;"></i> Est. INR {{ "{:,.0f}".format(trip.total_cost) }}</span>
             </div>
             
             <h3 style="font-size: 1.4rem; margin-bottom: 0.25rem;">{{ trip.name }}</h3>
             
             <div class="trip-meta">
                 <span><i data-lucide="calendar"></i> {{ trip.start_date.strftime('%b %d, %Y') }} - {{ trip.end_date.strftime('%b %d, %Y') }}</span>
-                <span><i data-lucide="users"></i> 2 Travelers</span>
+                <span><i data-lucide="users"></i> {{ trip.num_travelers }} Travelers</span>
                 <span><i data-lucide="map"></i> {{ trip.destination_count }} Destinations</span>
             </div>
             
@@ -205,6 +205,9 @@
         <div class="trip-actions">
             <a href="{{ url_for('view_trip', trip_id=trip.id) }}" class="btn btn-primary" style="padding: 0.5rem 1.25rem;">
                 View
+            </a>
+            <a href="{{ url_for('packing_list', trip_id=trip.id) }}" class="btn-icon" title="Packing Checklist">
+                <i data-lucide="suitcase" style="width: 18px; height: 18px;"></i>
             </a>
             <a href="{{ url_for('build_itinerary', trip_id=trip.id) }}" class="btn-icon" title="Edit Trip">
                 <i data-lucide="pencil" style="width: 18px; height: 18px;"></i>

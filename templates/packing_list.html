@@ -1,0 +1,271 @@
+{% extends "base.html" %}
+
+{% block extra_head %}
+<style>
+    .packing-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 3rem;
+        margin-top: 1rem;
+    }
+    
+    .packing-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 2rem;
+    }
+    
+    .category-card {
+        background: var(--white);
+        border-radius: var(--radius-xl);
+        box-shadow: var(--shadow-soft);
+        padding: 2rem;
+        border: 1px solid rgba(0,0,0,0.03);
+        height: fit-content;
+    }
+    
+    .category-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        color: var(--dark);
+    }
+    
+    .check-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #F1F5F9;
+        transition: var(--transition);
+    }
+    
+    .check-item:last-child {
+        border-bottom: none;
+    }
+    
+    .check-item.packed .item-text {
+        text-decoration: line-through;
+        color: var(--muted);
+    }
+    
+    .checkbox-custom {
+        width: 24px;
+        height: 24px;
+        border: 2px solid #E2E8F0;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: var(--transition);
+        flex-shrink: 0;
+    }
+    
+    .check-item.packed .checkbox-custom {
+        background: var(--success);
+        border-color: var(--success);
+        color: white;
+    }
+    
+    .item-text {
+        flex: 1;
+        font-weight: 500;
+        cursor: pointer;
+    }
+    
+    .delete-item {
+        color: var(--muted);
+        opacity: 0;
+        transition: var(--transition);
+        cursor: pointer;
+    }
+    
+    .check-item:hover .delete-item {
+        opacity: 1;
+    }
+    
+    .delete-item:hover {
+        color: var(--danger);
+    }
+    
+    .add-item-box {
+        margin-top: 1.5rem;
+        display: flex;
+        gap: 0.5rem;
+    }
+    
+    .item-input {
+        flex: 1;
+        padding: 0.5rem 1rem;
+        border-radius: var(--radius-md);
+        border: 1px solid #E2E8F0;
+        font-size: 0.9rem;
+    }
+    
+    .progress-section {
+        background: var(--white);
+        border-radius: var(--radius-xl);
+        padding: 2rem;
+        margin-bottom: 3rem;
+        box-shadow: var(--shadow-soft);
+        display: flex;
+        align-items: center;
+        gap: 3rem;
+    }
+    
+    @media (max-width: 768px) {
+        .progress-section { flex-direction: column; gap: 1.5rem; }
+    }
+    
+    .circular-progress {
+        position: relative;
+        width: 120px;
+        height: 120px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="animate-fade-in-up" id="packingListContainer" data-trip-id="{{ trip.id }}">
+    <div class="packing-header">
+        <div>
+            <h2 style="font-size: 2.5rem; margin-bottom: 0.5rem;">Packing Checklist</h2>
+            <p style="color: var(--muted); font-size: 1.1rem;"><i data-lucide="suitcase" style="width: 18px; height: 18px; vertical-align: text-bottom;"></i> {{ trip.name }} &bull; Ready for your journey?</p>
+        </div>
+        <a href="{{ url_for('view_trip', trip_id=trip.id) }}" class="btn btn-outline">
+            <i data-lucide="arrow-left"></i> Back to Trip
+        </a>
+    </div>
+
+    <!-- Progress Overview -->
+    <div class="progress-section">
+        <div style="flex: 1;">
+            <h3 style="margin-bottom: 1rem;">Packing Progress</h3>
+            <div style="height: 12px; background: #F1F5F9; border-radius: 6px; overflow: hidden; margin-bottom: 0.5rem;">
+                <div id="progressBar" style="height: 100%; background: linear-gradient(90deg, var(--primary), #34D399); width: 0%; transition: width 0.5s ease;"></div>
+            </div>
+            <p style="color: var(--muted); font-weight: 600;" id="progressText">0% of items packed</p>
+        </div>
+        <div style="display: flex; gap: 2rem;">
+            <div style="text-align: center;">
+                <div style="font-size: 1.5rem; font-weight: 800; color: var(--dark);" id="totalItems">0</div>
+                <div style="font-size: 0.8rem; color: var(--muted); text-transform: uppercase; font-weight: 700;">Total</div>
+            </div>
+            <div style="text-align: center;">
+                <div style="font-size: 1.5rem; font-weight: 800; color: var(--success);" id="packedItems">0</div>
+                <div style="font-size: 0.8rem; color: var(--muted); text-transform: uppercase; font-weight: 700;">Packed</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="packing-grid">
+        {% set categories_list = [
+            ('Clothing', 'shirt'),
+            ('Documents', 'file-text'),
+            ('Electronics', 'laptop'),
+            ('Toiletries', 'droplets'),
+            ('Other', 'plus-square')
+        ] %}
+
+        {% for cat_name, cat_icon in categories_list %}
+        <div class="category-card" data-category="{{ cat_name }}">
+            <div class="category-title">
+                <i data-lucide="{{ cat_icon }}" style="color: var(--primary);"></i>
+                {{ cat_name }}
+            </div>
+            
+            <div class="items-list" id="list-{{ cat_name }}">
+                {% for item in categories.get(cat_name, []) %}
+                <div class="check-item {% if item.is_packed %}packed{% endif %}" data-id="{{ item.id }}">
+                    <div class="checkbox-custom" onclick="toggleItem({{ item.id }}, this)">
+                        <i data-lucide="check" style="width: 16px; height: 16px;"></i>
+                    </div>
+                    <span class="item-text" onclick="toggleItem({{ item.id }}, this.previousElementSibling)">{{ item.item }}</span>
+                    <i data-lucide="trash-2" class="delete-item" onclick="deleteItem({{ item.id }}, this)"></i>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="add-item-box">
+                <input type="text" placeholder="Add item..." class="item-input" onkeypress="if(event.key === 'Enter') addItem('{{ cat_name }}', this)">
+                <button class="btn btn-primary" style="padding: 0.5rem;" onclick="addItem('{{ cat_name }}', this.previousElementSibling)">
+                    <i data-lucide="plus"></i>
+                </button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+    function updateProgress() {
+        const total = document.querySelectorAll('.check-item').length;
+        const packed = document.querySelectorAll('.check-item.packed').length;
+        const percent = total === 0 ? 0 : Math.round((packed / total) * 100);
+        
+        document.getElementById('progressBar').style.width = percent + '%';
+        document.getElementById('progressText').innerText = `${percent}% of items packed`;
+        document.getElementById('totalItems').innerText = total;
+        document.getElementById('packedItems').innerText = packed;
+    }
+
+    async function toggleItem(id, el) {
+        const res = await fetch(`/api/packing/${id}/toggle`, { method: 'POST' });
+        const data = await res.json();
+        if (data.status === 'success') {
+            const parent = el.closest('.check-item');
+            if (data.is_packed) parent.classList.add('packed');
+            else parent.classList.remove('packed');
+            updateProgress();
+        }
+    }
+
+    async function deleteItem(id, el) {
+        if (!confirm('Remove this item?')) return;
+        const res = await fetch(`/api/packing/${id}`, { method: 'DELETE' });
+        const data = await res.json();
+        if (data.status === 'success') {
+            el.closest('.check-item').remove();
+            updateProgress();
+        }
+    }
+
+    async function addItem(category, input) {
+        const val = input.value.trim();
+        if (!val) return;
+        
+        const tripId = document.getElementById('packingListContainer').dataset.tripId;
+        const res = await fetch(`/api/trips/${tripId}/packing/add`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ item: val, category: category })
+        });
+        
+        const data = await res.json();
+        if (data.status === 'success') {
+            const list = document.getElementById(`list-${category}`);
+            const html = `
+                <div class="check-item animate-fade-in-up" data-id="${data.id}" style="animation-duration: 0.3s;">
+                    <div class="checkbox-custom" onclick="toggleItem(${data.id}, this)">
+                        <i data-lucide="check" style="width: 16px; height: 16px;"></i>
+                    </div>
+                    <span class="item-text" onclick="toggleItem(${data.id}, this.previousElementSibling)">${val}</span>
+                    <i data-lucide="trash-2" class="delete-item" onclick="deleteItem(${data.id}, this)"></i>
+                </div>
+            `;
+            list.insertAdjacentHTML('beforeend', html);
+            input.value = '';
+            lucide.createIcons();
+            updateProgress();
+        }
+    }
+
+    // Init
+    document.addEventListener('DOMContentLoaded', updateProgress);
+</script>
+{% endblock %}
